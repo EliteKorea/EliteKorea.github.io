@@ -235,14 +235,19 @@ function addTodo() {
 }
 
 /* 날짜별 리스트 */
-function showList() {
-  list.innerHTML = "";
-  (data[date.value] || []).forEach(t => {
-    const li = document.createElement("li");
-    li.innerText = t;
-    list.appendChild(li);
-  });
+function deleteTodo(index) {
+  data[date.value].splice(index, 1);
+
+  if (data[date.value].length === 0) {
+    delete data[date.value];
+  }
+
+  localStorage.setItem("todo", JSON.stringify(data));
+  showList();
+  drawCalendar();
 }
+</script>
+
 
 date.onchange = showList;
 </script>
