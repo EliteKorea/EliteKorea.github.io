@@ -14,7 +14,7 @@ body {
   font-family: monospace;
 }
 
-/* ===== 레이아웃 ===== */
+/* 레이아웃 */
 .container {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -28,19 +28,19 @@ body {
   gap: 10px;
 }
 
-/* ===== 박스 ===== */
+/* 박스 */
 .box {
   background: #fff;
   padding: 8px;
   border: 3px solid black;
 }
 
-/* 달력 영역 아래로 늘리기 */
+/* 달력 영역 크게 */
 .calendar-box {
   min-height: 80vh;
 }
 
-/* ===== 버튼 ===== */
+/* 버튼 */
 button {
   border: 3px solid black;
   background: #e0e0e0;
@@ -51,7 +51,7 @@ button:active {
   background: #b0b0b0;
 }
 
-/* ===== 달력 ===== */
+/* 달력 */
 .calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -75,16 +75,16 @@ button:active {
   overflow: auto;
 }
 
-/* 픽셀 모드 OFF */
+/* 픽셀 OFF */
 .no-pixel .box,
 .no-pixel .day,
 .no-pixel .cell,
 .no-pixel button {
-  border-radius: 8px;
   border-width: 1px;
+  border-radius: 8px;
 }
 
-/* ===== 리스트 ===== */
+/* 리스트 */
 ul {
   margin: 5px 0 0 15px;
   padding: 0;
@@ -119,12 +119,12 @@ ul {
 
     <div class="box">
       <h3>💖 후원</h3>
-      <p>후원 버튼 자리</p>
+      <p>후원 자리</p>
     </div>
 
     <div class="box">
       <h3>📢 광고</h3>
-      <p>광고 영역</p>
+      <p>광고 자리</p>
     </div>
 
   </div>
@@ -144,13 +144,14 @@ ul {
     <br><br>
     <input id="todo" placeholder="할 일 입력">
     <button onclick="addTodo()">추가</button>
+
     <ul id="list"></ul>
   </div>
 
 </div>
 
 <script>
-/* ===== 타이머 ===== */
+/* 타이머 */
 function startTimer() {
   let t = Number(m.value) * 60 + Number(s.value);
   const i = setInterval(() => {
@@ -165,7 +166,7 @@ function startTimer() {
   }, 1000);
 }
 
-/* ===== 명언 ===== */
+/* 명언 */
 const quotes = [
   "지금 시작해도 늦지 않다.",
   "완벽보다 실행.",
@@ -173,19 +174,19 @@ const quotes = [
 ];
 quote.innerText = quotes[Math.floor(Math.random() * quotes.length)];
 
-/* ===== 픽셀 ON/OFF ===== */
+/* 픽셀 ON/OFF */
 function toggleStyle() {
   document.body.classList.toggle("no-pixel");
 }
 
-/* ===== 할 일 + 달력 ===== */
+/* 데이터 */
 let data = JSON.parse(localStorage.getItem("todo")) || {};
 const calendar = document.getElementById("calendar");
 const today = new Date();
 const year = today.getFullYear();
 const month = today.getMonth();
 
-/* 달력 생성 */
+/* 달력 */
 function drawCalendar() {
   calendar.querySelectorAll(".cell").forEach(c => c.remove());
 
@@ -218,7 +219,6 @@ function drawCalendar() {
     calendar.appendChild(cell);
   }
 }
-
 drawCalendar();
 
 /* 할 일 추가 */
@@ -234,20 +234,33 @@ function addTodo() {
   drawCalendar();
 }
 
-/* 날짜별 리스트 */
-function deleteTodo(index) {
-  data[date.value].splice(index, 1);
+/* 리스트 표시 + 삭제 */
+function showList() {
+  list.innerHTML = "";
 
+  (data[date.value] || []).forEach((t, i) => {
+    const li = document.createElement("li");
+    li.innerText = t + " ";
+
+    const del = document.createElement("button");
+    del.innerText = "❌";
+    del.onclick = () => deleteTodo(i);
+
+    li.appendChild(del);
+    list.appendChild(li);
+  });
+}
+
+/* 삭제 */
+function deleteTodo(i) {
+  data[date.value].splice(i, 1);
   if (data[date.value].length === 0) {
     delete data[date.value];
   }
-
   localStorage.setItem("todo", JSON.stringify(data));
   showList();
   drawCalendar();
 }
-</script>
-
 
 date.onchange = showList;
 </script>
