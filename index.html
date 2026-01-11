@@ -9,11 +9,11 @@
       background: #f2f2f2;
       display: flex;
       justify-content: center;
-      padding-top: 40px;
+      padding: 30px;
     }
     .box {
       background: white;
-      width: 340px;
+      width: 380px;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -21,33 +21,54 @@
     h1, h2 {
       text-align: center;
     }
+    .section { margin-top: 20px; }
+
     input, button {
-      padding: 8px;
+      padding: 6px;
       margin: 4px 0;
     }
-    input {
-      width: 70%;
+    button { cursor: pointer; }
+
+    /* 달력 */
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      font-size: 12px;
     }
-    button {
+    .day {
+      background: #fafafa;
+      border: 1px solid #ddd;
+      min-height: 50px;
+      padding: 2px;
       cursor: pointer;
     }
-    ul {
-      list-style: none;
-      padding: 0;
+    .day.today {
+      background: #e3f2fd;
     }
-    li {
-      padding: 6px;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .day span {
+      font-size: 10px;
+      color: #555;
     }
-    li.done {
-      text-decoration: line-through;
-      color: gray;
+    .todo-dot {
+      font-size: 10px;
+      color: red;
     }
-    .section {
-      margin-top: 20px;
+
+    /* 광고 */
+    .ad {
+      background: #eee;
+      text-align: center;
+      padding: 10px;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* 타이머 */
+    .timer {
+      text-align: center;
+      font-size: 26px;
     }
   </style>
 </head>
@@ -56,117 +77,124 @@
 <div class="box">
   <h1>📌 학생용 편리 사이트</h1>
 
-  <!-- 할 일 리스트 -->
+  <!-- 📅 달력형 할 일 -->
   <div class="section">
-    <h2>📝 할 일</h2>
-    <input id="todoInput" placeholder="할 일 입력">
+    <h2>📅 달력 할 일</h2>
+    <input id="todoText" placeholder="할 일 입력">
+    <input id="todoDate" type="date">
     <button onclick="addTodo()">추가</button>
-    <ul id="todoList"></ul>
+    <div class="calendar" id="calendar"></div>
   </div>
 
-  <!-- D-Day -->
+  <!-- ⏱ 공부 타이머 -->
   <div class="section">
-    <h2>📅 D-Day</h2>
-    <input id="ddayTitle" placeholder="이벤트 이름">
-    <input id="ddayDate" type="date">
-    <button onclick="addDDay()">추가</button>
-    <ul id="ddayList"></ul>
+    <h2>⏱ 공부 타이머</h2>
+    <div class="timer" id="timer">25:00</div>
+    <button onclick="startTimer()">시작</button>
+    <button onclick="resetTimer()">리셋</button>
+  </div>
+
+  <!-- 💰 광고 자리 -->
+  <div class="ad">
+    📢 광고 자리 (AdSense 승인 후 여기에 광고 표시)
+  </div>
+
+  <!-- ❤️ 후원 -->
+  <div class="ad">
+    ☕ 마음에 들면 후원해주세요<br>
+    <button onclick="alert('나중에 후원 링크 연결')">❤️ 후원하기</button>
   </div>
 </div>
 
 <script>
-  /* 할 일 리스트 */
-  let todos = JSON.parse(localStorage.getItem("todos")) || [];
-  const todoInput = document.getElementById("todoInput");
-  const todoList = document.getElementById("todoList");
+  /* ===== 달력형 할 일 ===== */
+  const calendarEl = document.getElementById("calendar");
+  const todoText = document.getElementById("todoText");
+  const todoDate = document.getElementById("todoDate");
+  let todos = JSON.parse(localStorage.getItem("calendarTodos")) || [];
 
   function saveTodos() {
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }
-
-  function renderTodos() {
-    todoList.innerHTML = "";
-    todos.forEach((todo, i) => {
-      const li = document.createElement("li");
-      li.textContent = todo.text;
-      if (todo.done) li.classList.add("done");
-
-      li.onclick = () => {
-        todos[i].done = !todos[i].done;
-        saveTodos();
-        renderTodos();
-      };
-
-      const del = document.createElement("button");
-      del.textContent = "❌";
-      del.onclick = (e) => {
-        e.stopPropagation();
-        todos.splice(i, 1);
-        saveTodos();
-        renderTodos();
-      };
-
-      li.appendChild(del);
-      todoList.appendChild(li);
-    });
+    localStorage.setItem("calendarTodos", JSON.stringify(todos));
   }
 
   function addTodo() {
-    if (!todoInput.value) return;
-    todos.push({ text: todoInput.value, done: false });
-    todoInput.value = "";
+    if (!todoText.value || !todoDate.value) return;
+    todos.push({ text: todoText.value, date: todoDate.value });
+    todoText.value = "";
+    todoDate.value = "";
     saveTodos();
-    renderTodos();
+    renderCalendar();
   }
 
-  /* D-Day */
-  let ddays = JSON.parse(localStorage.getItem("ddays")) || [];
-  const ddayTitle = document.getElementById("ddayTitle");
-  const ddayDate = document.getElementById("ddayDate");
-  const ddayList = document.getElementById("ddayList");
+  function renderCalendar() {
+    calendarEl.innerHTML = "";
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
 
-  function saveDDays() {
-    localStorage.setItem("ddays", JSON.stringify(ddays));
-  }
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
 
-  function daysLeft(dateStr) {
-    const today = new Date();
-    const target = new Date(dateStr);
-    const diff = target - today;
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
-  }
+    for (let i = 0; i < firstDay; i++) {
+      calendarEl.appendChild(document.createElement("div"));
+    }
 
-  function renderDDays() {
-    ddayList.innerHTML = "";
-    ddays.forEach((d, i) => {
-      const li = document.createElement("li");
-      const left = daysLeft(d.date);
-      li.textContent = `${d.title} : D-${left}`;
+    for (let d = 1; d <= lastDate; d++) {
+      const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      const dayEl = document.createElement("div");
+      dayEl.className = "day";
+      if (d === now.getDate()) dayEl.classList.add("today");
 
-      const del = document.createElement("button");
-      del.textContent = "❌";
-      del.onclick = () => {
-        ddays.splice(i, 1);
-        saveDDays();
-        renderDDays();
+      dayEl.innerHTML = `<span>${d}</span>`;
+      const dayTodos = todos.filter(t => t.date === dateStr);
+      if (dayTodos.length > 0) {
+        dayEl.innerHTML += `<div class="todo-dot">● ${dayTodos.length}</div>`;
+      }
+
+      dayEl.onclick = () => {
+        if (dayTodos.length === 0) {
+          alert("할 일 없음");
+        } else {
+          alert(dayTodos.map(t => "• " + t.text).join("\n"));
+        }
       };
 
-      li.appendChild(del);
-      ddayList.appendChild(li);
-    });
+      calendarEl.appendChild(dayEl);
+    }
   }
 
-  function addDDay() {
-    if (!ddayTitle.value || !ddayDate.value) return;
-    ddays.push({ title: ddayTitle.value, date: ddayDate.value });
-    ddayTitle.value = "";
-    ddayDate.value = "";
-    saveDDays();
-    renderDDays();
+  /* ===== 타이머 ===== */
+  let time = 25 * 60;
+  let interval = null;
+  const timerEl = document.getElementById("timer");
+
+  function updateTimer() {
+    const m = String(Math.floor(time / 60)).padStart(2,"0");
+    const s = String(time % 60).padStart(2,"0");
+    timerEl.textContent = `${m}:${s}`;
+  }
+  function startTimer() {
+    if (interval) return;
+    interval = setInterval(() => {
+      if (time > 0) {
+        time--;
+        updateTimer();
+      } else {
+        clearInterval(interval);
+        interval = null;
+        alert("공부 끝!");
+      }
+    }, 1000);
+  }
+  function resetTimer() {
+    clearInterval(interval);
+    interval = null;
+    time = 25 * 60;
+    updateTimer();
   }
 
-  renderTodos();
-  renderDDays();
+  renderCalendar();
+  updateTimer();
 </script>
 
 </body>
