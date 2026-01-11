@@ -2,221 +2,133 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>학생용 편리 사이트</title>
+<title>픽셀 학생 사이트</title>
 
 <style>
+/* ===== 기본 ===== */
 body {
   margin: 0;
-  font-family: "Malgun Gothic", Arial;
-  background: #dcdcdc;
+  padding: 10px;
+  background: #bdbdbd;
+  font-family: Dotum, monospace;
 }
 
-/* 전체 레이아웃 */
+/* ===== 픽셀 모드 ===== */
+.pixel .box {
+  border: 4px solid black;
+  border-radius: 0;
+}
+
+.box {
+  background: white;
+  padding: 8px;
+}
+
+/* ===== 레이아웃 ===== */
 .container {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  height: 100vh;
+  grid-template-columns: 1fr 2.5fr;
+  gap: 10px;
 }
 
-/* 왼쪽 영역 (싸이월드 느낌) */
-.left {
-  background: #f7f7f7;
-  padding: 15px;
-  border-right: 2px solid #bbb;
-}
+/* 위치 */
+.timer { grid-column: 1; }
+.quote { grid-column: 1; }
+.schedule { grid-column: 2; grid-row: 1 / 3; }
+.footer { grid-column: 1 / 3; }
 
-/* 타이머 */
-.timer-box {
-  background: white;
-  border: 2px solid #aaa;
-  padding: 15px;
-  text-align: center;
-}
-
-.timer {
-  font-size: 36px;
-  margin: 10px 0;
-}
-
-.timer input {
-  width: 50px;
-  text-align: center;
-}
-
-/* 오른쪽 달력 */
-.right {
-  padding: 20px;
-}
-
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-}
-
-.day {
-  background: white;
-  border: 1px solid #aaa;
-  min-height: 110px;
-  padding: 5px;
+/* 버튼 */
+button {
+  border: 3px solid black;
+  background: #e0e0e0;
   cursor: pointer;
-}
-
-.day.today {
-  background: #e3f2fd;
-}
-
-.day span {
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.todo-dot {
-  font-size: 12px;
-  color: crimson;
-  margin-top: 4px;
-}
-
-/* 상단 */
-.top-bar {
-  background: #3b5998;
-  color: white;
-  padding: 8px;
-  font-weight: bold;
 }
 </style>
 </head>
 
-<body>
-
-<div class="top-bar">📘 STUDY WORLD</div>
+<body class="pixel">
 
 <div class="container">
 
-  <!-- 왼쪽 -->
-  <div class="left">
-    <div class="timer-box">
-      <h3>⏱ 공부 타이머</h3>
-
-      <div>
-        <input id="min" type="number" value="25"> 분
-        <input id="sec" type="number" value="0"> 초
-      </div>
-
-      <div class="timer" id="timer">25:00</div>
-
-      <button onclick="startTimer()">시작</button>
-      <button onclick="pauseTimer()">정지</button>
-      <button onclick="resetTimer()">리셋</button>
-    </div>
+  <!-- 타이머 -->
+  <div class="box timer">
+    <h3>⏱ 타이머</h3>
+    <input id="m" type="number" value="1">분
+    <input id="s" type="number" value="0">초
+    <button onclick="start()">시작</button>
+    <p id="time">대기중</p>
   </div>
 
-  <!-- 오른쪽 -->
-  <div class="right">
-    <h2>📅 달력 할 일</h2>
-
-    <input id="todoText" placeholder="할 일">
-    <input id="todoDate" type="date">
+  <!-- 달력 + 할 일 -->
+  <div class="box schedule">
+    <h3>📅 달력 + 📝 할 일</h3>
+    <input type="date" id="date"><br><br>
+    <input id="todo" placeholder="할 일">
     <button onclick="addTodo()">추가</button>
+    <ul id="list"></ul>
+  </div>
 
-    <div class="calendar" id="calendar"></div>
+  <!-- 명언 -->
+  <div class="box quote">
+    <h3>💬 오늘의 명언</h3>
+    <p id="quote"></p>
+  </div>
+
+  <!-- 설정 / 후원 / 광고 -->
+  <div class="box footer">
+    <button onclick="togglePixel()">⚙ 픽셀 모드 ON/OFF</button>
+    <p>💖 후원 | 📢 광고</p>
   </div>
 
 </div>
 
 <script>
 /* ===== 타이머 ===== */
-let time = 1500;
-let interval = null;
-const timerEl = document.getElementById("timer");
-
-function updateTimer() {
-  const m = String(Math.floor(time / 60)).padStart(2,"0");
-  const s = String(time % 60).padStart(2,"0");
-  timerEl.textContent = `${m}:${s}`;
-}
-
-function startTimer() {
-  if (interval) return;
-  const min = parseInt(document.getElementById("min").value) || 0;
-  const sec = parseInt(document.getElementById("sec").value) || 0;
-  time = min * 60 + sec;
-  updateTimer();
-
-  interval = setInterval(() => {
-    if (time > 0) {
-      time--;
-      updateTimer();
-    } else {
-      clearInterval(interval);
-      interval = null;
-      alert("공부 끝!");
-    }
+function start() {
+  let t = m.value * 60 + Number(s.value);
+  const i = setInterval(() => {
+    if (t <= 0) { clearInterval(i); time.innerText = "끝!"; return; }
+    t--;
+    time.innerText = Math.floor(t/60)+"분 "+(t%60)+"초";
   }, 1000);
 }
 
-function pauseTimer() {
-  clearInterval(interval);
-  interval = null;
-}
-
-function resetTimer() {
-  pauseTimer();
-  updateTimer();
-}
-
-/* ===== 달력 ===== */
-const calendarEl = document.getElementById("calendar");
-let todos = JSON.parse(localStorage.getItem("calendarTodos")) || [];
-
-function saveTodos() {
-  localStorage.setItem("calendarTodos", JSON.stringify(todos));
-}
+/* ===== 달력 할 일 ===== */
+let data = JSON.parse(localStorage.getItem("todoData")) || {};
 
 function addTodo() {
-  const text = todoText.value;
-  const date = todoDate.value;
-  if (!text || !date) return;
-  todos.push({ text, date });
-  todoText.value = "";
-  todoDate.value = "";
-  saveTodos();
-  renderCalendar();
+  const d = date.value;
+  if (!d || !todo.value) return;
+  data[d] = data[d] || [];
+  data[d].push(todo.value);
+  localStorage.setItem("todoData", JSON.stringify(data));
+  todo.value = "";
+  show();
 }
 
-function renderCalendar() {
-  calendarEl.innerHTML = "";
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  const first = new Date(y, m, 1).getDay();
-  const last = new Date(y, m+1, 0).getDate();
+date.onchange = show;
 
-  for (let i=0;i<first;i++) calendarEl.appendChild(document.createElement("div"));
-
-  for (let d=1; d<=last; d++) {
-    const dateStr = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const day = document.createElement("div");
-    day.className = "day";
-    if (d === now.getDate()) day.classList.add("today");
-
-    day.innerHTML = `<span>${d}</span>`;
-    const dayTodos = todos.filter(t => t.date === dateStr);
-    if (dayTodos.length)
-      day.innerHTML += `<div class="todo-dot">● ${dayTodos.length}</div>`;
-
-    day.onclick = () => {
-      alert(dayTodos.length
-        ? dayTodos.map(t=>"• "+t.text).join("\n")
-        : "할 일 없음");
-    };
-
-    calendarEl.appendChild(day);
-  }
+function show() {
+  list.innerHTML = "";
+  (data[date.value] || []).forEach(t => {
+    const li = document.createElement("li");
+    li.innerText = "■ " + t;
+    list.appendChild(li);
+  });
 }
 
-renderCalendar();
-updateTimer();
+/* ===== 명언 ===== */
+const quotes = [
+  "지금 하는 게 제일 빠르다.",
+  "완벽보다 실행.",
+  "계속하면 이긴다."
+];
+quote.innerText = quotes[Math.floor(Math.random()*quotes.length)];
+
+/* ===== 픽셀 모드 ===== */
+function togglePixel() {
+  document.body.classList.toggle("pixel");
+}
 </script>
 
 </body>
