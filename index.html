@@ -2,57 +2,51 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>픽셀 학생 사이트</title>
+<title>픽셀 플래너</title>
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   padding: 10px;
   background: #bdbdbd;
-  font-family: Dotum, monospace;
+  font-family: monospace;
 }
 
-/* 픽셀 모드 */
-.pixel .box,
-.pixel .day,
-.pixel .cell {
-  border: 3px solid black;
-  border-radius: 0;
-}
-
-/* 레이아웃 */
+/* 전체 구조 */
 .container {
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 10px;
+  align-items: start;
 }
 
+/* 왼쪽 */
 .left {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* 공통 박스 */
 .box {
-  background: white;
+  background: #ffffff;
   padding: 8px;
+  border: 3px solid black;
 }
 
 /* 버튼 */
 button {
   border: 3px solid black;
   background: #e0e0e0;
-  font-family: monospace;
   cursor: pointer;
-}
-
-button:active {
-  background: #bdbdbd;
-}
-
-input {
-  border: 2px solid black;
   font-family: monospace;
+}
+button:active {
+  background: #b0b0b0;
 }
 
 /* ===== 달력 ===== */
@@ -64,21 +58,27 @@ input {
 }
 
 .day {
+  background: #d0d0d0;
   text-align: center;
   font-weight: bold;
-  background: #dcdcdc;
+  border: 2px solid black;
 }
 
 .cell {
-  height: 60px;
+  height: 55px;
   background: #f5f5f5;
-  font-size: 12px;
-  padding: 2px;
+  border: 2px solid black;
+}
+
+/* 리스트 */
+ul {
+  padding-left: 15px;
+  margin: 5px 0 0 0;
 }
 </style>
 </head>
 
-<body class="pixel">
+<body>
 
 <div class="container">
 
@@ -87,25 +87,25 @@ input {
 
     <div class="box">
       <h3>⏱ 타이머</h3>
-      <input id="m" type="number" value="1">분
-      <input id="s" type="number" value="0">초
+      <input id="m" type="number" value="1" style="width:50px"> 분
+      <input id="s" type="number" value="0" style="width:50px"> 초
       <button onclick="startTimer()">시작</button>
       <p id="time">대기중</p>
     </div>
 
     <div class="box">
-      <h3>💬 명언</h3>
+      <h3>💬 오늘의 명언</h3>
       <p id="quote"></p>
     </div>
 
     <div class="box">
       <h3>⚙ 설정</h3>
-      <button onclick="togglePixel()">픽셀 모드 ON / OFF</button>
+      <p>픽셀 모드 기본 ON</p>
     </div>
 
     <div class="box">
       <h3>💖 후원 | 📢 광고</h3>
-      <p>응원 감사합니다</p>
+      <p>자리만 확보</p>
     </div>
 
   </div>
@@ -114,12 +114,11 @@ input {
   <div class="box">
     <h2>📅 달력 + 📝 할 일</h2>
 
-    <!-- 요일 -->
     <div class="calendar">
       <div class="day">일</div><div class="day">월</div><div class="day">화</div>
       <div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div>
 
-      <!-- 날짜 칸 (예시 35칸) -->
+      <!-- 35칸 -->
       <div class="cell"></div><div class="cell"></div><div class="cell"></div>
       <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
 
@@ -138,11 +137,12 @@ input {
 
     <hr>
 
-    <!-- 할 일 -->
-    <input type="date" id="date"><br><br>
+    <input type="date" id="date">
+    <br><br>
     <input id="todo" placeholder="할 일 입력">
     <button onclick="addTodo()">추가</button>
     <ul id="list"></ul>
+
   </div>
 
 </div>
@@ -163,14 +163,22 @@ function startTimer() {
   }, 1000);
 }
 
+/* 명언 */
+const quotes = [
+  "지금 시작해도 늦지 않았다.",
+  "완벽보다 실행.",
+  "계속하면 된다."
+];
+quote.innerText = quotes[Math.floor(Math.random() * quotes.length)];
+
 /* 할 일 */
-let data = JSON.parse(localStorage.getItem("todoData")) || {};
+let data = JSON.parse(localStorage.getItem("todo")) || {};
 
 function addTodo() {
   if (!date.value || !todo.value) return;
   data[date.value] = data[date.value] || [];
   data[date.value].push(todo.value);
-  localStorage.setItem("todoData", JSON.stringify(data));
+  localStorage.setItem("todo", JSON.stringify(data));
   todo.value = "";
   show();
 }
@@ -184,19 +192,6 @@ function show() {
     li.innerText = "■ " + t;
     list.appendChild(li);
   });
-}
-
-/* 명언 */
-const quotes = [
-  "지금 하는 게 제일 빠르다.",
-  "완벽보다 실행.",
-  "계속하면 결국 된다."
-];
-quote.innerText = quotes[Math.floor(Math.random() * quotes.length)];
-
-/* 픽셀 모드 */
-function togglePixel() {
-  document.body.classList.toggle("pixel");
 }
 </script>
 
