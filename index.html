@@ -1,200 +1,222 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>학생용 편리 사이트</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      display: flex;
-      justify-content: center;
-      padding: 30px;
-    }
-    .box {
-      background: white;
-      width: 380px;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    h1, h2 {
-      text-align: center;
-    }
-    .section { margin-top: 20px; }
+<meta charset="UTF-8">
+<title>학생용 편리 사이트</title>
 
-    input, button {
-      padding: 6px;
-      margin: 4px 0;
-    }
-    button { cursor: pointer; }
+<style>
+body {
+  margin: 0;
+  font-family: "Malgun Gothic", Arial;
+  background: #dcdcdc;
+}
 
-    /* 달력 */
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-      font-size: 12px;
-    }
-    .day {
-      background: #fafafa;
-      border: 1px solid #ddd;
-      min-height: 50px;
-      padding: 2px;
-      cursor: pointer;
-    }
-    .day.today {
-      background: #e3f2fd;
-    }
-    .day span {
-      font-size: 10px;
-      color: #555;
-    }
-    .todo-dot {
-      font-size: 10px;
-      color: red;
-    }
+/* 전체 레이아웃 */
+.container {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100vh;
+}
 
-    /* 광고 */
-    .ad {
-      background: #eee;
-      text-align: center;
-      padding: 10px;
-      margin-top: 15px;
-      font-size: 14px;
-      color: #555;
-    }
+/* 왼쪽 영역 (싸이월드 느낌) */
+.left {
+  background: #f7f7f7;
+  padding: 15px;
+  border-right: 2px solid #bbb;
+}
 
-    /* 타이머 */
-    .timer {
-      text-align: center;
-      font-size: 26px;
-    }
-  </style>
+/* 타이머 */
+.timer-box {
+  background: white;
+  border: 2px solid #aaa;
+  padding: 15px;
+  text-align: center;
+}
+
+.timer {
+  font-size: 36px;
+  margin: 10px 0;
+}
+
+.timer input {
+  width: 50px;
+  text-align: center;
+}
+
+/* 오른쪽 달력 */
+.right {
+  padding: 20px;
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.day {
+  background: white;
+  border: 1px solid #aaa;
+  min-height: 110px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.day.today {
+  background: #e3f2fd;
+}
+
+.day span {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.todo-dot {
+  font-size: 12px;
+  color: crimson;
+  margin-top: 4px;
+}
+
+/* 상단 */
+.top-bar {
+  background: #3b5998;
+  color: white;
+  padding: 8px;
+  font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
-<div class="box">
-  <h1>📌 학생용 편리 사이트</h1>
+<div class="top-bar">📘 STUDY WORLD</div>
 
-  <!-- 📅 달력형 할 일 -->
-  <div class="section">
+<div class="container">
+
+  <!-- 왼쪽 -->
+  <div class="left">
+    <div class="timer-box">
+      <h3>⏱ 공부 타이머</h3>
+
+      <div>
+        <input id="min" type="number" value="25"> 분
+        <input id="sec" type="number" value="0"> 초
+      </div>
+
+      <div class="timer" id="timer">25:00</div>
+
+      <button onclick="startTimer()">시작</button>
+      <button onclick="pauseTimer()">정지</button>
+      <button onclick="resetTimer()">리셋</button>
+    </div>
+  </div>
+
+  <!-- 오른쪽 -->
+  <div class="right">
     <h2>📅 달력 할 일</h2>
-    <input id="todoText" placeholder="할 일 입력">
+
+    <input id="todoText" placeholder="할 일">
     <input id="todoDate" type="date">
     <button onclick="addTodo()">추가</button>
+
     <div class="calendar" id="calendar"></div>
   </div>
 
-  <!-- ⏱ 공부 타이머 -->
-  <div class="section">
-    <h2>⏱ 공부 타이머</h2>
-    <div class="timer" id="timer">25:00</div>
-    <button onclick="startTimer()">시작</button>
-    <button onclick="resetTimer()">리셋</button>
-  </div>
-
-  <!-- 💰 광고 자리 -->
-  <div class="ad">
-    📢 광고 자리 (AdSense 승인 후 여기에 광고 표시)
-  </div>
-
-  <!-- ❤️ 후원 -->
-  <div class="ad">
-    ☕ 마음에 들면 후원해주세요<br>
-    <button onclick="alert('나중에 후원 링크 연결')">❤️ 후원하기</button>
-  </div>
 </div>
 
 <script>
-  /* ===== 달력형 할 일 ===== */
-  const calendarEl = document.getElementById("calendar");
-  const todoText = document.getElementById("todoText");
-  const todoDate = document.getElementById("todoDate");
-  let todos = JSON.parse(localStorage.getItem("calendarTodos")) || [];
+/* ===== 타이머 ===== */
+let time = 1500;
+let interval = null;
+const timerEl = document.getElementById("timer");
 
-  function saveTodos() {
-    localStorage.setItem("calendarTodos", JSON.stringify(todos));
-  }
+function updateTimer() {
+  const m = String(Math.floor(time / 60)).padStart(2,"0");
+  const s = String(time % 60).padStart(2,"0");
+  timerEl.textContent = `${m}:${s}`;
+}
 
-  function addTodo() {
-    if (!todoText.value || !todoDate.value) return;
-    todos.push({ text: todoText.value, date: todoDate.value });
-    todoText.value = "";
-    todoDate.value = "";
-    saveTodos();
-    renderCalendar();
-  }
-
-  function renderCalendar() {
-    calendarEl.innerHTML = "";
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const lastDate = new Date(year, month + 1, 0).getDate();
-
-    for (let i = 0; i < firstDay; i++) {
-      calendarEl.appendChild(document.createElement("div"));
-    }
-
-    for (let d = 1; d <= lastDate; d++) {
-      const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-      const dayEl = document.createElement("div");
-      dayEl.className = "day";
-      if (d === now.getDate()) dayEl.classList.add("today");
-
-      dayEl.innerHTML = `<span>${d}</span>`;
-      const dayTodos = todos.filter(t => t.date === dateStr);
-      if (dayTodos.length > 0) {
-        dayEl.innerHTML += `<div class="todo-dot">● ${dayTodos.length}</div>`;
-      }
-
-      dayEl.onclick = () => {
-        if (dayTodos.length === 0) {
-          alert("할 일 없음");
-        } else {
-          alert(dayTodos.map(t => "• " + t.text).join("\n"));
-        }
-      };
-
-      calendarEl.appendChild(dayEl);
-    }
-  }
-
-  /* ===== 타이머 ===== */
-  let time = 25 * 60;
-  let interval = null;
-  const timerEl = document.getElementById("timer");
-
-  function updateTimer() {
-    const m = String(Math.floor(time / 60)).padStart(2,"0");
-    const s = String(time % 60).padStart(2,"0");
-    timerEl.textContent = `${m}:${s}`;
-  }
-  function startTimer() {
-    if (interval) return;
-    interval = setInterval(() => {
-      if (time > 0) {
-        time--;
-        updateTimer();
-      } else {
-        clearInterval(interval);
-        interval = null;
-        alert("공부 끝!");
-      }
-    }, 1000);
-  }
-  function resetTimer() {
-    clearInterval(interval);
-    interval = null;
-    time = 25 * 60;
-    updateTimer();
-  }
-
-  renderCalendar();
+function startTimer() {
+  if (interval) return;
+  const min = parseInt(document.getElementById("min").value) || 0;
+  const sec = parseInt(document.getElementById("sec").value) || 0;
+  time = min * 60 + sec;
   updateTimer();
+
+  interval = setInterval(() => {
+    if (time > 0) {
+      time--;
+      updateTimer();
+    } else {
+      clearInterval(interval);
+      interval = null;
+      alert("공부 끝!");
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(interval);
+  interval = null;
+}
+
+function resetTimer() {
+  pauseTimer();
+  updateTimer();
+}
+
+/* ===== 달력 ===== */
+const calendarEl = document.getElementById("calendar");
+let todos = JSON.parse(localStorage.getItem("calendarTodos")) || [];
+
+function saveTodos() {
+  localStorage.setItem("calendarTodos", JSON.stringify(todos));
+}
+
+function addTodo() {
+  const text = todoText.value;
+  const date = todoDate.value;
+  if (!text || !date) return;
+  todos.push({ text, date });
+  todoText.value = "";
+  todoDate.value = "";
+  saveTodos();
+  renderCalendar();
+}
+
+function renderCalendar() {
+  calendarEl.innerHTML = "";
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const first = new Date(y, m, 1).getDay();
+  const last = new Date(y, m+1, 0).getDate();
+
+  for (let i=0;i<first;i++) calendarEl.appendChild(document.createElement("div"));
+
+  for (let d=1; d<=last; d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const day = document.createElement("div");
+    day.className = "day";
+    if (d === now.getDate()) day.classList.add("today");
+
+    day.innerHTML = `<span>${d}</span>`;
+    const dayTodos = todos.filter(t => t.date === dateStr);
+    if (dayTodos.length)
+      day.innerHTML += `<div class="todo-dot">● ${dayTodos.length}</div>`;
+
+    day.onclick = () => {
+      alert(dayTodos.length
+        ? dayTodos.map(t=>"• "+t.text).join("\n")
+        : "할 일 없음");
+    };
+
+    calendarEl.appendChild(day);
+  }
+}
+
+renderCalendar();
+updateTimer();
 </script>
 
 </body>
