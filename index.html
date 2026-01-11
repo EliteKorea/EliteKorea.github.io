@@ -1,11 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>내 첫 사이트</title>
+  <title>학생용 할 일 리스트</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      padding-top: 50px;
+    }
+    .box {
+      background: white;
+      width: 320px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    input {
+      width: 75%;
+      padding: 8px;
+    }
+    button {
+      padding: 8px;
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 6px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+    }
+    li.done {
+      text-decoration: line-through;
+      color: gray;
+    }
+  </style>
 </head>
 <body>
-  <h1>🎉 사이트 성공!</h1>
-  <p>이 페이지가 보이면 잘 된 거야.</p>
+
+<div class="box">
+  <h1>📝 할 일 리스트</h1>
+
+  <input id="todoInput" placeholder="할 일 입력">
+  <button onclick="addTodo()">추가</button>
+
+  <ul id="todoList"></ul>
+</div>
+
+<script>
+  const todoInput = document.getElementById("todoInput");
+  const todoList = document.getElementById("todoList");
+
+  let todos = JSON.parse(localStorage.getItem("todos")) || [];
+
+  function saveTodos() {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }
+
+  function renderTodos() {
+    todoList.innerHTML = "";
+    todos.forEach((todo, index) => {
+      const li = document.createElement("li");
+      li.textContent = todo.text;
+      if (todo.done) li.classList.add("done");
+
+      li.onclick = () => {
+        todos[index].done = !todos[index].done;
+        saveTodos();
+        renderTodos();
+      };
+
+      const del = document.createElement("button");
+      del.textContent = "❌";
+      del.onclick = (e) => {
+        e.stopPropagation();
+        todos.splice(index, 1);
+        saveTodos();
+        renderTodos();
+      };
+
+      li.appendChild(del);
+      todoList.appendChild(li);
+    });
+  }
+
+  function addTodo() {
+    if (todoInput.value === "") return;
+    todos.push({ text: todoInput.value, done: false });
+    todoInput.value = "";
+    saveTodos();
+    renderTodos();
+  }
+
+  renderTodos();
+</script>
+
 </body>
 </html>
