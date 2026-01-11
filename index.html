@@ -8,16 +8,9 @@
 /* ===== 기본 ===== */
 body {
   margin: 0;
-  padding: 12px;
+  padding: 10px;
   background: #bdbdbd;
   font-family: Dotum, monospace;
-}
-
-/* ===== 박스 ===== */
-.box {
-  background: white;
-  padding: 10px;
-  margin-bottom: 10px;
 }
 
 /* ===== 픽셀 모드 ===== */
@@ -26,7 +19,32 @@ body {
   border-radius: 0;
 }
 
-/* ===== 버튼 ===== */
+/* ===== 레이아웃 ===== */
+.container {
+  display: grid;
+  grid-template-columns: 260px 1fr; /* 왼쪽 작게, 오른쪽 크게 */
+  gap: 10px;
+}
+
+/* 왼쪽 세로 묶음 */
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 오른쪽 메인 */
+.right {
+  min-height: 500px;
+}
+
+/* 공통 박스 */
+.box {
+  background: white;
+  padding: 8px;
+}
+
+/* 버튼 */
 button {
   border: 3px solid black;
   background: #e0e0e0;
@@ -39,7 +57,6 @@ button:active {
   background: #bdbdbd;
 }
 
-/* 입력칸 */
 input {
   border: 2px solid black;
   font-family: monospace;
@@ -49,91 +66,96 @@ input {
 
 <body class="pixel">
 
-<!-- ⏱ 타이머 -->
-<div class="box">
-  <h3>⏱ 타이머</h3>
-  <input id="min" type="number" value="1"> 분
-  <input id="sec" type="number" value="0"> 초
-  <button onclick="startTimer()">시작</button>
-  <p id="timerText">대기중</p>
-</div>
+<div class="container">
 
-<!-- 📅 달력 + 📝 할 일 -->
-<div class="box">
-  <h3>📅 달력 + 📝 할 일</h3>
-  <input type="date" id="date"><br><br>
-  <input id="todoInput" placeholder="할 일 입력">
-  <button onclick="addTodo()">추가</button>
-  <ul id="todoList"></ul>
-</div>
+  <!-- 왼쪽 -->
+  <div class="left">
 
-<!-- 💬 명언 -->
-<div class="box">
-  <h3>💬 오늘의 명언</h3>
-  <p id="quote"></p>
-</div>
+    <div class="box">
+      <h3>⏱ 타이머</h3>
+      <input id="m" type="number" value="1">분
+      <input id="s" type="number" value="0">초
+      <button onclick="startTimer()">시작</button>
+      <p id="time">대기중</p>
+    </div>
 
-<!-- ⚙ 설정 -->
-<div class="box">
-  <h3>⚙ 설정</h3>
-  <button onclick="togglePixel()">픽셀 모드 ON / OFF</button>
-</div>
+    <div class="box">
+      <h3>💬 명언</h3>
+      <p id="quote"></p>
+    </div>
 
-<!-- 💖 후원 / 📢 광고 -->
-<div class="box">
-  <h3>💖 후원 | 📢 광고</h3>
-  <p>이 사이트가 도움이 됐다면 응원해주세요</p>
+    <div class="box">
+      <h3>⚙ 설정</h3>
+      <button onclick="togglePixel()">픽셀 모드 ON / OFF</button>
+    </div>
+
+    <div class="box">
+      <h3>💖 후원 | 📢 광고</h3>
+      <p>응원해주면 큰 힘이 돼요</p>
+    </div>
+
+  </div>
+
+  <!-- 오른쪽 -->
+  <div class="box right">
+    <h2>📅 달력 + 📝 할 일</h2>
+    <input type="date" id="date"><br><br>
+    <input id="todo" placeholder="할 일 입력">
+    <button onclick="addTodo()">추가</button>
+    <ul id="list"></ul>
+  </div>
+
 </div>
 
 <script>
-/* ===== 타이머 ===== */
+/* 타이머 */
 function startTimer() {
-  let total = Number(min.value) * 60 + Number(sec.value);
-  const timer = setInterval(() => {
-    if (total <= 0) {
-      clearInterval(timer);
-      timerText.innerText = "끝!";
+  let t = Number(m.value) * 60 + Number(s.value);
+  const i = setInterval(() => {
+    if (t <= 0) {
+      clearInterval(i);
+      time.innerText = "끝!";
       return;
     }
-    total--;
-    timerText.innerText =
-      Math.floor(total / 60) + "분 " + (total % 60) + "초";
+    t--;
+    time.innerText =
+      Math.floor(t / 60) + "분 " + (t % 60) + "초";
   }, 1000);
 }
 
-/* ===== 달력 할 일 ===== */
-let data = JSON.parse(localStorage.getItem("todos")) || {};
+/* 달력 할 일 */
+let data = JSON.parse(localStorage.getItem("todoData")) || {};
 
 function addTodo() {
-  if (!date.value || !todoInput.value) return;
+  if (!date.value || !todo.value) return;
   data[date.value] = data[date.value] || [];
-  data[date.value].push(todoInput.value);
-  localStorage.setItem("todos", JSON.stringify(data));
-  todoInput.value = "";
-  showTodos();
+  data[date.value].push(todo.value);
+  localStorage.setItem("todoData", JSON.stringify(data));
+  todo.value = "";
+  show();
 }
 
-date.onchange = showTodos;
+date.onchange = show;
 
-function showTodos() {
-  todoList.innerHTML = "";
+function show() {
+  list.innerHTML = "";
   (data[date.value] || []).forEach(t => {
     const li = document.createElement("li");
     li.innerText = "■ " + t;
-    todoList.appendChild(li);
+    list.appendChild(li);
   });
 }
 
-/* ===== 명언 ===== */
+/* 명언 */
 const quotes = [
   "지금 하는 게 제일 빠르다.",
   "완벽보다 실행.",
   "계속하면 결국 된다.",
-  "작아도 시작이 중요하다."
+  "시작한 사람이 이긴다."
 ];
 quote.innerText = quotes[Math.floor(Math.random() * quotes.length)];
 
-/* ===== 픽셀 모드 ===== */
+/* 픽셀 모드 */
 function togglePixel() {
   document.body.classList.toggle("pixel");
 }
