@@ -2,220 +2,231 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>미니홈피 캘린더</title>
+<title>미니홈피</title>
 
 <style>
-* { box-sizing: border-box; }
-
 body {
-  margin: 0;
-  padding: 10px;
-  font-family: "굴림", monospace;
-  background: #cde7ff;
+  margin:0; padding:0;
+  font-family: 굴림, monospace;
+  background:#cde7ff;
 }
 
-/* 싸이월드 프레임 */
+.hidden { display:none; }
+
+button {
+  border:2px solid #555;
+  background:#eee;
+  cursor:pointer;
+}
+
+input {
+  margin:4px 0;
+}
+
+/* 홈 */
+#home {
+  text-align:center;
+  padding-top:100px;
+}
+
+/* 프레임 */
+#app {
+  padding:10px;
+}
+
 .frame {
-  background: #fdfdfd;
-  border: 4px solid #6b8cff;
-  padding: 10px;
+  border:4px solid #6b8cff;
+  background:#fff;
+  padding:10px;
 }
 
 /* 레이아웃 */
 .container {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 10px;
+  display:grid;
+  grid-template-columns:260px 1fr;
+  gap:10px;
 }
 
-/* 왼쪽 */
-.left {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
+/* 박스 */
 .box {
-  background: #fff;
-  border: 2px dashed #8aa4ff;
-  padding: 8px;
-}
-
-/* 오른쪽 */
-.calendar-box {
-  height: calc(100vh - 40px);
-  display: flex;
-  flex-direction: column;
-  background: #f5f8ff;
-  border: 3px solid #8aa4ff;
-  padding: 8px;
-}
-
-/* 제목 */
-#title {
-  text-align: center;
-  background: #e6ecff;
-  border: 2px solid #8aa4ff;
-  padding: 6px;
-  margin-bottom: 6px;
+  border:2px dashed #8aa4ff;
+  padding:6px;
+  background:#fff;
+  margin-bottom:8px;
 }
 
 /* 달력 */
 .calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  flex: 1;
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:4px;
 }
 
 .day {
-  text-align: center;
-  font-weight: bold;
-  background: #dbe4ff;
-  border: 2px solid #8aa4ff;
+  background:#dbe4ff;
+  text-align:center;
+  border:1px solid #8aa4ff;
 }
 
 .cell {
-  border: 2px solid #8aa4ff;
-  background: #fffef5;
-  height: 120px;
-  padding: 4px;
-  overflow-y: auto;
-  font-size: 12px;
+  height:120px;
+  border:2px solid #8aa4ff;
+  background:#fffef5;
 }
 
-/* 오늘 날짜 */
 .today {
-  background: #fff0f5;
-  border: 3px solid hotpink;
+  border:3px solid hotpink;
 }
 
-/* 메모 */
 textarea {
-  width: 100%;
-  height: 90px;
-  resize: none;
-  border: none;
-  background: transparent;
-  font-family: "굴림", monospace;
-  font-size: 12px;
+  width:100%;
+  height:90px;
+  border:none;
+  resize:none;
+  font-family:굴림;
+  background:transparent;
 }
 
-/* 싸이월드 OFF */
-.no-cyworld {
-  background: #bdbdbd;
-  font-family: monospace;
-}
+/* 스킨 */
+.skin-pink { background:#ffe6f0; }
+.skin-blue { background:#e6f0ff; }
+.skin-dot  { background:#f5f5f5; }
 
-.no-cyworld .frame,
-.no-cyworld .calendar-box,
-.no-cyworld .box,
-.no-cyworld .day,
-.no-cyworld .cell {
-  border-radius: 8px;
-  border: 1px solid #888;
-}
 </style>
 </head>
 
 <body>
 
-<div class="frame">
-  <div class="container">
+<!-- 홈 -->
+<div id="home">
+  <h1>🏠 미니홈피</h1>
+  <p>방문자 수: <span id="visit"></span></p>
 
-    <!-- 왼쪽 -->
-    <div class="left">
-      <div class="box">
-        <h3>⏱ 타이머</h3>
-        <input id="m" type="number" value="1" style="width:50px"> 분
-        <input id="s" type="number" value="0" style="width:50px"> 초
-        <button onclick="startTimer()">시작</button>
-        <p id="time">대기중</p>
+  <h3>로그인</h3>
+  <input id="lid" placeholder="아이디"><br>
+  <input id="lpw" type="password" placeholder="비밀번호"><br>
+  <button onclick="login()">로그인</button>
+
+  <h3>회원가입</h3>
+  <input id="sid" placeholder="아이디"><br>
+  <input id="spw" type="password" placeholder="비밀번호"><br>
+  <button onclick="signup()">회원가입</button>
+</div>
+
+<!-- 앱 -->
+<div id="app" class="hidden">
+  <div class="frame">
+    <button onclick="logout()">로그아웃</button>
+
+    <div class="container">
+
+      <!-- 왼쪽 -->
+      <div>
+        <div class="box">
+          <h3>🎵 BGM</h3>
+          <button onclick="toggleBgm()">ON / OFF</button>
+        </div>
+
+        <div class="box">
+          <h3>🎨 스킨</h3>
+          <button onclick="setSkin('pink')">핑크</button>
+          <button onclick="setSkin('blue')">블루</button>
+          <button onclick="setSkin('dot')">도트</button>
+        </div>
+
+        <div class="box">
+          <h3>💬 한마디</h3>
+          <p>오늘도 놀러와줘서 고마워 ♡</p>
+        </div>
+
+        <div class="box"><h3>💖 후원</h3></div>
+        <div class="box"><h3>📢 광고</h3></div>
       </div>
 
-      <div class="box">
-        <h3>💬 오늘의 한마디</h3>
-        <p id="quote"></p>
+      <!-- 오른쪽 -->
+      <div>
+        <h2 id="title"></h2>
+        <div class="calendar" id="cal">
+          <div class="day">일</div><div class="day">월</div><div class="day">화</div>
+          <div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div>
+        </div>
       </div>
 
-      <div class="box">
-        <h3>⚙ 설정</h3>
-        <button onclick="toggleStyle()">싸이월드 ON / OFF</button>
-      </div>
-
-      <div class="box"><h3>💖 후원</h3></div>
-      <div class="box"><h3>📢 광고</h3></div>
     </div>
-
-    <!-- 오른쪽 -->
-    <div class="calendar-box">
-      <h2 id="title"></h2>
-
-      <div class="calendar" id="calendar">
-        <div class="day">일</div><div class="day">월</div><div class="day">화</div>
-        <div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div>
-      </div>
-    </div>
-
   </div>
 </div>
 
+<audio id="bgm" loop>
+  <source src="https://upload.wikimedia.org/wikipedia/commons/4/45/Popcorn.ogg">
+</audio>
+
 <script>
-/* 타이머 */
-function startTimer(){
-  let t=Number(m.value)*60+Number(s.value);
-  const i=setInterval(()=>{
-    if(t<=0){clearInterval(i);time.innerText="끝!";return;}
-    t--;time.innerText=Math.floor(t/60)+"분 "+(t%60)+"초";
-  },1000);
+/* 방문자 */
+let v=Number(localStorage.getItem("visit")||0)+1;
+localStorage.setItem("visit",v);
+visit.innerText=v;
+
+/* 로그인 */
+let users=JSON.parse(localStorage.getItem("users"))||{};
+function signup(){
+  users[sid.value]=spw.value;
+  localStorage.setItem("users",JSON.stringify(users));
+  alert("가입 완료");
+}
+function login(){
+  if(users[lid.value]===lpw.value){
+    localStorage.setItem("login",lid.value);
+    start();
+  } else alert("실패");
+}
+function logout(){
+  localStorage.removeItem("login");
+  location.reload();
 }
 
-/* 명언 */
-quote.innerText=[
-  "오늘도 미니홈피 출석 완료 ♡",
-  "도망가도 괜찮아, 멈추지만 말자",
-  "그때의 나도 지금의 나도 소중해"
-][Math.floor(Math.random()*3)];
+/* 시작 */
+function start(){
+  home.classList.add("hidden");
+  app.classList.remove("hidden");
+  draw();
+}
+if(localStorage.getItem("login")) start();
 
-/* 싸이월드 토글 */
-function toggleStyle(){
-  document.body.classList.toggle("no-cyworld");
+/* BGM */
+function toggleBgm(){
+  bgm.paused?bgm.play():bgm.pause();
+}
+
+/* 스킨 */
+function setSkin(s){
+  document.body.className="skin-"+s;
 }
 
 /* 달력 */
-const cal=document.getElementById("calendar");
-const data=JSON.parse(localStorage.getItem("memo"))||{};
+const cal=document.getElementById("cal");
+const memo=JSON.parse(localStorage.getItem("memo"))||{};
 const now=new Date();
-const y=now.getFullYear(),mth=now.getMonth(),today=now.getDate();
-
-title.innerText=`📅 ${y}년 ${mth+1}월 ${today}일`;
+const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+title.innerText=`📅 ${y}년 ${m+1}월 ${d}일`;
 
 function draw(){
   cal.querySelectorAll(".cell").forEach(e=>e.remove());
-  const first=new Date(y,mth,1).getDay();
-  const last=new Date(y,mth+1,0).getDate();
+  let f=new Date(y,m,1).getDay();
+  let l=new Date(y,m+1,0).getDate();
 
-  for(let i=0;i<first;i++) cal.appendChild(document.createElement("div"));
+  for(let i=0;i<f;i++) cal.appendChild(document.createElement("div"));
 
-  for(let d=1;d<=last;d++){
-    const key=`${y}-${String(mth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const cell=document.createElement("div");
-    cell.className="cell";
-    if(d===today) cell.classList.add("today");
-
-    const ta=document.createElement("textarea");
-    ta.placeholder=`${d}일 메모`;
-    ta.value=data[key]||"";
-    ta.oninput=()=>{
-      data[key]=ta.value;
-      localStorage.setItem("memo",JSON.stringify(data));
-    };
-
-    cell.appendChild(ta);
-    cal.appendChild(cell);
+  for(let i=1;i<=l;i++){
+    let key=`${y}-${m+1}-${i}`;
+    let c=document.createElement("div");
+    c.className="cell"+(i===d?" today":"");
+    let t=document.createElement("textarea");
+    t.value=memo[key]||"";
+    t.oninput=()=>{memo[key]=t.value;localStorage.setItem("memo",JSON.stringify(memo));}
+    c.appendChild(t);
+    cal.appendChild(c);
   }
 }
-draw();
 </script>
 
 </body>
