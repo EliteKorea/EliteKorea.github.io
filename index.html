@@ -15,7 +15,6 @@ body.dark{
   --text:#ffffff;
   --box:#1e293b;
 }
-
 body{
   margin:0;
   font-family:Arial;
@@ -89,17 +88,9 @@ body{
   padding:6px;
   background:var(--box);
 }
-.today{
-  outline:3px solid #38bdf8;
-}
-.date-num{
-  font-weight:bold;
-  margin-bottom:4px;
-}
-.memo{
-  min-height:120px;
-  outline:none;
-}
+.today{outline:3px solid #38bdf8}
+.date-num{font-weight:bold;margin-bottom:4px}
+.memo{min-height:120px;outline:none}
 
 input,button{
   width:100%;
@@ -113,14 +104,16 @@ button{
   font-weight:bold;
   cursor:pointer;
 }
+.small{
+  font-size:13px;
+  opacity:.8;
+}
 </style>
 </head>
 
 <body>
 
-<!-- ⚙ -->
 <div class="setting-btn" onclick="toggleSetting()">⚙</div>
-
 <div class="setting-panel" id="settingPanel">
   <h3>⚙ 설정</h3>
   <button onclick="toggleTheme()">🌗 다크 / 라이트</button>
@@ -130,20 +123,20 @@ button{
 
   <!-- 왼쪽 -->
   <div class="left">
-    <h3>⏱ 타이머</h3>
 
+    <h3>📌 출석 체크</h3>
+    <button id="checkBtn" onclick="checkIn()">오늘 출석하기</button>
+    <p class="small" id="checkStatus"></p>
+    <p>⭐ 포인트: <b id="point"></b></p>
+
+    <h3>⏱ 타이머</h3>
     <div class="timer-wrap">
       <svg width="160" height="160">
-        <circle cx="80" cy="80" r="70"
-          stroke="#ddd" stroke-width="12" fill="none"/>
-        <circle id="gauge"
-          cx="80" cy="80" r="70"
-          stroke="#38bdf8" stroke-width="12"
-          fill="none"
-          stroke-dasharray="440"
-          stroke-dashoffset="0"
-          stroke-linecap="round"
-          transform="rotate(-90 80 80)"/>
+        <circle cx="80" cy="80" r="70" stroke="#ddd" stroke-width="12" fill="none"/>
+        <circle id="gauge" cx="80" cy="80" r="70"
+          stroke="#38bdf8" stroke-width="12" fill="none"
+          stroke-dasharray="440" stroke-dashoffset="0"
+          stroke-linecap="round" transform="rotate(-90 80 80)"/>
       </svg>
       <div class="timer-text" id="time">00:00:00</div>
     </div>
@@ -189,35 +182,62 @@ quote.innerText=quotes[Math.floor(Math.random()*quotes.length)];
 
 /* 원형 타이머 */
 let timer,total;
-const gauge=document.getElementById('gauge');
-
 function startTimer(){
   clearInterval(timer);
   let t=(+h.value||0)*3600+(+m.value||0)*60+(+s.value||0);
   if(t<=0) return;
-
   total=t;
   updateGauge(1);
 
   timer=setInterval(()=>{
     t--;
-    if(t<0){
-      clearInterval(timer);
-      return;
-    }
+    if(t<0){clearInterval(timer);return;}
     updateGauge(t/total);
-
-    const hh=String(Math.floor(t/3600)).padStart(2,'0');
-    const mm=String(Math.floor(t%3600/60)).padStart(2,'0');
-    const ss=String(t%60).padStart(2,'0');
-    time.innerText=`${hh}:${mm}:${ss}`;
+    time.innerText=
+      String(Math.floor(t/3600)).padStart(2,'0')+":"+
+      String(Math.floor(t%3600/60)).padStart(2,'0')+":"+
+      String(t%60).padStart(2,'0');
   },1000);
 }
 function updateGauge(r){
-  gauge.style.strokeDashoffset=440*(1-r);
+  document.getElementById('gauge').style.strokeDashoffset=440*(1-r);
 }
 
-/* 달력 + 메모 저장 */
+/* 출석 + 포인트 */
+const today=new Date().toISOString().slice(0,10);
+let point=+localStorage.getItem('point')||0;
+let last=localStorage.getItem('lastCheck');
+let streak=+localStorage.getItem('streak')||0;
+
+document.getElementById('point').innerText=point;
+
+if(last===today){
+  checkStatus.innerText="오늘은 이미 출석했어요 ✅";
+  checkBtn.disabled=true;
+}
+
+function checkIn(){
+  if(last===today) return;
+
+  const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  streak = (last===yesterday)? streak+1 : 1;
+
+  let gain = (streak===7)?10:1;
+  point+=gain;
+
+  localStorage.setItem('point',point);
+  localStorage.setItem('lastCheck',today);
+  localStorage.setItem('streak',streak);
+
+  pointEl=document.getElementById('point');
+  pointEl.innerText=point;
+
+  checkStatus.innerText=
+    streak===7 ? "🎉 7일 연속! +10포인트" : "출석 완료 +1포인트";
+  checkBtn.disabled=true;
+}
+
+/* 달력 + 메모 */
 const cal=document.getElementById('calendar');
 const now=new Date();
 const y=now.getFullYear();
@@ -240,10 +260,7 @@ for(let i=1;i<=30;i++){
 
   const key=`memo-${y}-${mth}-${i}`;
   memo.innerText=localStorage.getItem(key)||"";
-
-  memo.addEventListener('input',()=>{
-    localStorage.setItem(key,memo.innerText);
-  });
+  memo.oninput=()=>localStorage.setItem(key,memo.innerText);
 
   day.append(num,memo);
   cal.appendChild(day);
