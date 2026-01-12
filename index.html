@@ -28,8 +28,11 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
   background:#f5f5f5;
   transition: all 0.3s ease;
 }
-.panel.expanded{width:500px;height:400px;} /* 메모 확대 */
 body.dark .panel{background:#444;color:white;}
+
+/* 메모 패널 기본 크기 + 클릭 시 확대 */
+.panel#memoPanel { width: 400px; height: 300px; }
+.panel#memoPanel.expanded { width: 500px; height: 400px; }
 
 /* 타이머 */
 .timer-container{position:relative;width:200px;height:200px;margin:auto;}
@@ -116,7 +119,7 @@ function togglePanel(id, btn){
   const panel=document.getElementById(id);
   if(panel.style.display==='block'){ // 이미 열려있으면 닫기
     panel.style.display='none';
-    panel.classList.remove('expanded'); // 확대 해제
+    panel.classList.remove('expanded'); // 축소
   } else { // 닫혀있으면 열기
     // 다른 패널 모두 닫기
     document.querySelectorAll('.panel').forEach(p=>{
@@ -126,7 +129,7 @@ function togglePanel(id, btn){
     // 선택된 패널 버튼 아래 배치 후 표시
     btn.insertAdjacentElement('afterend', panel);
     panel.style.display='block';
-    if(id==='memoPanel') panel.classList.add('expanded'); // 메모 패널 확대
+    if(id==='memoPanel') panel.classList.add('expanded'); // 메모만 확대
   }
 }
 
