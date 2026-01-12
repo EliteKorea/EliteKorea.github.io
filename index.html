@@ -29,13 +29,11 @@ button,input{
 }
 h2{text-align:center}
 
-/* 메인 */
 .menu button{
   width:100%;
   margin-top:8px;
 }
 
-/* 공부 일정 */
 .study-wrap{
   display:flex;
   gap:10px;
@@ -53,7 +51,6 @@ h2{text-align:center}
   align-items:center;
   justify-content:center;
   margin:auto;
-  font-size:14px;
 }
 .calendar{
   display:grid;
@@ -70,7 +67,6 @@ textarea{
   height:100%;
   border:none;
   resize:none;
-  background:transparent;
 }
 </style>
 </head>
@@ -78,13 +74,13 @@ textarea{
 <body>
 
 <!-- 로그인 -->
-<div id="login" class="center">
+<div id="loginPage" class="center">
   <div class="box">
     <h2>로그인 / 회원가입</h2>
 
     <input id="lid" placeholder="아이디">
     <input id="lpw" type="password" placeholder="비밀번호">
-    <button onclick="login()">로그인</button>
+    <button onclick="doLogin()">로그인</button>
 
     <hr>
 
@@ -95,25 +91,24 @@ textarea{
 </div>
 
 <!-- 메인 -->
-<div id="main" class="center hidden">
+<div id="mainPage" class="center hidden">
   <div class="box">
     <h2 id="welcome"></h2>
     <p id="quote"></p>
     <div class="menu">
-      <button onclick="goStudy()">📅 공부 일정</button>
+      <button onclick="openStudy()">📅 공부 일정</button>
       <button onclick="logout()">로그아웃</button>
     </div>
   </div>
 </div>
 
 <!-- 공부 일정 -->
-<div id="study" class="center hidden">
+<div id="studyPage" class="center hidden">
   <div class="box" style="width:720px">
-    <button onclick="goMain()">⬅ 메인</button>
+    <button onclick="backMain()">⬅ 메인</button>
     <h2 id="title"></h2>
 
     <div class="study-wrap">
-      <!-- 타이머 -->
       <div class="timer">
         <input id="h" type="number" value="1" style="width:40px">시
         <input id="m" type="number" value="0" style="width:40px">분
@@ -124,7 +119,6 @@ textarea{
         <div class="circle" id="time">00:00:00</div>
       </div>
 
-      <!-- 달력 -->
       <div style="flex:1">
         <div class="calendar" id="cal"></div>
       </div>
@@ -143,57 +137,50 @@ quote.innerText=quotes[Math.floor(Math.random()*quotes.length)];
 
 /* 회원가입 */
 function signup(){
-  const id = sid.value;
-  const pw = spw.value;
-  if(!id || !pw){ alert("입력해"); return; }
-
-  let users = JSON.parse(localStorage.getItem("users")) || {};
-  if(users[id]){ alert("이미 있음"); return; }
-
-  users[id] = pw;
-  localStorage.setItem("users", JSON.stringify(users));
+  const id=sid.value, pw=spw.value;
+  if(!id||!pw){alert("입력해");return;}
+  let users=JSON.parse(localStorage.getItem("users"))||{};
+  if(users[id]){alert("이미 있음");return;}
+  users[id]=pw;
+  localStorage.setItem("users",JSON.stringify(users));
   alert("회원가입 완료");
 }
 
-/* 로그인 */
-function login(){
-  const id = lid.value;
-  const pw = lpw.value;
-
-  let users = JSON.parse(localStorage.getItem("users")) || {};
-  if(users[id] === pw){
-    localStorage.setItem("login", id);
+/* 로그인 (버그 없음) */
+function doLogin(){
+  const id=lid.value, pw=lpw.value;
+  let users=JSON.parse(localStorage.getItem("users"))||{};
+  if(users[id]===pw){
+    localStorage.setItem("loginUser",id);
     showMain();
   }else{
-    alert("아이디 또는 비번 틀림");
+    alert("아이디 또는 비밀번호 틀림");
   }
 }
 
-/* 로그아웃 */
 function logout(){
-  localStorage.removeItem("login");
+  localStorage.removeItem("loginUser");
   location.reload();
 }
 
 /* 화면 이동 */
 function showMain(){
-  loginDiv().classList.add("hidden");
-  main.classList.remove("hidden");
-  welcome.innerText = localStorage.getItem("login") + "님 환영!";
+  loginPage.classList.add("hidden");
+  mainPage.classList.remove("hidden");
+  welcome.innerText=localStorage.getItem("loginUser")+"님 환영!";
 }
-function goStudy(){
-  main.classList.add("hidden");
-  study.classList.remove("hidden");
+function openStudy(){
+  mainPage.classList.add("hidden");
+  studyPage.classList.remove("hidden");
   drawCalendar();
 }
-function goMain(){
-  study.classList.add("hidden");
-  main.classList.remove("hidden");
+function backMain(){
+  studyPage.classList.add("hidden");
+  mainPage.classList.remove("hidden");
 }
-function loginDiv(){ return document.getElementById("login"); }
 
 /* 자동 로그인 */
-if(localStorage.getItem("login")){
+if(localStorage.getItem("loginUser")){
   showMain();
 }
 
@@ -203,17 +190,15 @@ function start(){
   stop();
   remain=Number(h.value)*3600+Number(m.value)*60+Number(s.value);
   timer=setInterval(()=>{
-    if(remain<=0){ stop(); return; }
+    if(remain<=0){stop();return;}
     remain--;
-    let hh=String(Math.floor(remain/3600)).padStart(2,"0");
-    let mm=String(Math.floor(remain%3600/60)).padStart(2,"0");
-    let ss=String(remain%60).padStart(2,"0");
-    time.innerText=`${hh}:${mm}:${ss}`;
+    time.innerText=
+      String(Math.floor(remain/3600)).padStart(2,"0")+":"+
+      String(Math.floor(remain%3600/60)).padStart(2,"0")+":"+
+      String(remain%60).padStart(2,"0");
   },1000);
 }
-function stop(){
-  clearInterval(timer);
-}
+function stop(){clearInterval(timer);}
 
 /* 달력 */
 let memos=JSON.parse(localStorage.getItem("memos"))||{};
@@ -226,9 +211,8 @@ function drawCalendar(){
   const last=new Date(y,m+1,0).getDate();
 
   for(let i=0;i<first;i++) cal.appendChild(document.createElement("div"));
-
   for(let i=1;i<=last;i++){
-    const key=`${localStorage.getItem("login")}_${y}-${m+1}-${i}`;
+    const key=`${localStorage.getItem("loginUser")}_${y}-${m+1}-${i}`;
     const cell=document.createElement("div");
     cell.className="cell"+(i===d?" today":"");
     const ta=document.createElement("textarea");
