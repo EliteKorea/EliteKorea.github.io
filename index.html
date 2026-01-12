@@ -11,7 +11,8 @@ body{
   background:#cde7ff;
 }
 .hidden{display:none;}
-button{cursor:pointer;}
+button{cursor:pointer; padding:6px;}
+input{padding:6px; margin:4px;}
 
 .page{
   padding:40px;
@@ -20,18 +21,18 @@ button{cursor:pointer;}
 
 .frame{
   width:90%;
+  max-width:500px;
   margin:auto;
   background:#fff;
   border:4px solid #6b8cff;
   padding:20px;
 }
 
-/* 메인 */
+/* 메뉴 */
 .menu button{
-  display:block;
-  margin:15px auto;
-  padding:10px;
   width:200px;
+  margin:10px auto;
+  display:block;
 }
 
 /* 달력 */
@@ -65,13 +66,22 @@ textarea{
 
 <body>
 
-<!-- A. 로그인 -->
-<div id="login" class="page">
+<!-- A. 로그인 / 회원가입 -->
+<div id="auth" class="page">
   <div class="frame">
-    <h1>🔐 로그인</h1>
-    <input id="id" placeholder="아이디"><br><br>
-    <input id="pw" type="password" placeholder="비밀번호"><br><br>
+    <h1>🔐 로그인 / 회원가입</h1>
+
+    <h3>로그인</h3>
+    <input id="lid" placeholder="아이디"><br>
+    <input id="lpw" type="password" placeholder="비밀번호"><br>
     <button onclick="login()">로그인</button>
+
+    <hr>
+
+    <h3>회원가입</h3>
+    <input id="sid" placeholder="아이디"><br>
+    <input id="spw" type="password" placeholder="비밀번호"><br>
+    <button onclick="signup()">회원가입</button>
   </div>
 </div>
 
@@ -79,7 +89,7 @@ textarea{
 <div id="main" class="page hidden">
   <div class="frame">
     <h1>🏠 메인 페이지</h1>
-    <p>로블록스 메인처럼 생각하면 됨</p>
+    <p id="welcome"></p>
 
     <div class="menu">
       <button onclick="go('memo')">📅 메모 페이지</button>
@@ -102,59 +112,77 @@ textarea{
 </div>
 
 <script>
-/* ===== 페이지 관리 ===== */
-function go(page){
-  localStorage.setItem("page",page);
-  show(page);
-}
+/* ===== 데이터 ===== */
+let users = JSON.parse(localStorage.getItem("users")) || {};
+let memos = JSON.parse(localStorage.getItem("memos")) || {};
 
+/* ===== 페이지 전환 ===== */
 function show(page){
-  login.classList.add("hidden");
+  auth.classList.add("hidden");
   main.classList.add("hidden");
   memo.classList.add("hidden");
   document.getElementById(page).classList.remove("hidden");
+  localStorage.setItem("page", page);
+}
+
+/* ===== 회원가입 ===== */
+function signup(){
+  if(!sid.value || !spw.value) return alert("입력해");
+  if(users[sid.value]) return alert("이미 있음");
+  users[sid.value] = spw.value;
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("회원가입 완료!");
 }
 
 /* ===== 로그인 ===== */
 function login(){
-  localStorage.setItem("login","ok");
-  go("main");
+  if(users[lid.value] === lpw.value){
+    localStorage.setItem("login", lid.value);
+    welcome.innerText = lid.value + " 님 환영!";
+    show("main");
+  } else {
+    alert("아이디 또는 비밀번호 틀림");
+  }
 }
+
+/* ===== 로그아웃 ===== */
 function logout(){
-  localStorage.clear();
+  localStorage.removeItem("login");
+  localStorage.removeItem("page");
   location.reload();
 }
 
 /* ===== 새로고침 복구 ===== */
-if(localStorage.getItem("login")){
-  show(localStorage.getItem("page")||"main");
+const logged = localStorage.getItem("login");
+if(logged){
+  welcome.innerText = logged + " 님 환영!";
+  show(localStorage.getItem("page") || "main");
 }else{
-  show("login");
+  show("auth");
 }
 
 /* ===== 달력 ===== */
-const cal=document.getElementById("cal");
-const data=JSON.parse(localStorage.getItem("memoData"))||{};
-const now=new Date();
-const y=now.getFullYear(), m=now.getMonth(), d=now.getDate();
-title.innerText=`📅 ${y}년 ${m+1}월 ${d}일`;
+const cal = document.getElementById("cal");
+const now = new Date();
+const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+title.innerText = `📅 ${y}년 ${m+1}월 ${d}일`;
 
 function draw(){
   cal.querySelectorAll(".cell").forEach(e=>e.remove());
-  let f=new Date(y,m,1).getDay();
-  let l=new Date(y,m+1,0).getDate();
+  let f = new Date(y,m,1).getDay();
+  let l = new Date(y,m+1,0).getDate();
 
   for(let i=0;i<f;i++) cal.appendChild(document.createElement("div"));
 
   for(let i=1;i<=l;i++){
-    let key=`${y}-${m+1}-${i}`;
-    let c=document.createElement("div");
-    c.className="cell"+(i===d?" today":"");
-    let t=document.createElement("textarea");
-    t.value=data[key]||"";
-    t.oninput=()=>{
-      data[key]=t.value;
-      localStorage.setItem("memoData",JSON.stringify(data));
+    let key = `${localStorage.getItem("login")}_${y}-${m+1}-${i}`;
+    let c = document.createElement("div");
+    c.className = "cell" + (i===d?" today":"");
+    let t = document.createElement("textarea");
+    t.value = memos[key] || "";
+    t.oninput = ()=>{
+      memos[key] = t.value;
+      localStorage.setItem("memos", JSON.stringify(memos));
     };
     c.appendChild(t);
     cal.appendChild(c);
