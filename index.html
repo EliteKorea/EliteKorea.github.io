@@ -58,9 +58,9 @@ button{cursor:pointer;}
     <div class="menu-header" onclick="toggleMenu()">☰ 메뉴</div>
     
     <!-- 메뉴 버튼 -->
-    <button class="menu-btn" onclick="showPanel('timerPanel', this)"><span>⏱</span> <span>타이머</span></button>
-    <button class="menu-btn" onclick="showPanel('checkPanel', this)"><span>📌</span> <span>출석</span></button>
-    <button class="menu-btn" onclick="showPanel('memoPanel', this)"><span>📝</span> <span>메모</span></button>
+    <button class="menu-btn" onclick="togglePanel('timerPanel', this)"><span>⏱</span> <span>타이머</span></button>
+    <button class="menu-btn" onclick="togglePanel('checkPanel', this)"><span>📌</span> <span>출석</span></button>
+    <button class="menu-btn" onclick="togglePanel('memoPanel', this)"><span>📝</span> <span>메모</span></button>
 
     <!-- 타이머 패널 -->
     <div class="panel" id="timerPanel">
@@ -110,16 +110,20 @@ function toggleMenu(){
   document.getElementById("leftMenu").classList.toggle("closed",!menuOpen);
 }
 
-/* ===== 패널 전환 & 위치 변경 ===== */
-function showPanel(id, btn){
-  // 모든 패널 숨김
-  document.querySelectorAll('.panel').forEach(p=>{
-    p.style.display='none';
-  });
-  // 선택된 패널을 버튼 바로 아래에 배치 후 표시
+/* ===== 패널 토글 기능 ===== */
+function togglePanel(id, btn){
   const panel=document.getElementById(id);
-  btn.insertAdjacentElement('afterend', panel);
-  panel.style.display='block';
+  if(panel.style.display==='block'){ // 이미 열려있으면 닫기
+    panel.style.display='none';
+  } else { // 닫혀있으면 열기
+    // 다른 패널 모두 닫기
+    document.querySelectorAll('.panel').forEach(p=>{
+      p.style.display='none';
+    });
+    // 선택된 패널 버튼 바로 아래에 배치 후 표시
+    btn.insertAdjacentElement('afterend', panel);
+    panel.style.display='block';
+  }
 }
 
 /* ===== 다크 모드 ===== */
@@ -156,8 +160,11 @@ for(let d=1;d<=30;d++){
   const ta=document.createElement("textarea");
   ta.value=localStorage["d"+d]||"";
   ta.oninput=()=>localStorage["d"+d]=ta.value;
-  // 클릭하면 메모 패널 표시
-  box.onclick=()=>showPanel('memoPanel', document.querySelector('.menu-btn:nth-child(3)'));
+  // 클릭하면 메모 패널 토글
+  box.onclick=()=>{
+    const memoBtn=document.querySelector('.menu-btn:nth-child(3)');
+    togglePanel('memoPanel', memoBtn);
+  }
   box.innerHTML=`<b>${d}</b>`;
   box.appendChild(ta);
   cal.appendChild(box);
