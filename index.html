@@ -92,16 +92,28 @@ input{padding:6px;width:100%;margin:4px 0}
 <script>
 /* 회원 시스템 (localStorage) */
 function signup(){
-  const id=authId.value, pw=authPw.value;
-  if(!id||!pw) return alert('입력해');
-  localStorage.setItem('user-'+id,pw);
-  alert('회원가입 완료');
+  const id = authId.value.trim();
+  const pw = authPw.value.trim();
+  if(!id || !pw){ alert('아이디와 비밀번호를 입력해'); return; }
+
+  if(localStorage.getItem('user-'+id)){
+    alert('이미 존재하는 아이디야');
+    return;
+  }
+
+  localStorage.setItem('user-'+id, pw);
+  alert('회원가입 완료! 이제 로그인해');
 }
 
 function login(){
-  const id=authId.value, pw=authPw.value;
-  if(localStorage.getItem('user-'+id)!==pw) return alert('로그인 실패');
-  localStorage.setItem('login',id);
+  const id = authId.value.trim();
+  const pw = authPw.value.trim();
+
+  const savedPw = localStorage.getItem('user-'+id);
+  if(!savedPw){ alert('존재하지 않는 아이디야'); return; }
+  if(savedPw !== pw){ alert('비밀번호가 틀렸어'); return; }
+
+  localStorage.setItem('login', id);
   authPage.classList.add('hidden');
   mainPage.classList.remove('hidden');
 }
