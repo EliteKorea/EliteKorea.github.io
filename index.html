@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>미니홈피</title>
+<title>공부 플래너</title>
 
 <style>
 body{
@@ -30,7 +30,7 @@ input{padding:6px; margin:4px;}
 
 /* 메뉴 */
 .menu button{
-  width:200px;
+  width:220px;
   margin:10px auto;
   display:block;
 }
@@ -92,14 +92,14 @@ textarea{
     <p id="welcome"></p>
 
     <div class="menu">
-      <button onclick="go('memo')">📅 메모 페이지</button>
+      <button onclick="go('study')">📚 공부 일정</button>
       <button onclick="logout()">🚪 로그아웃</button>
     </div>
   </div>
 </div>
 
-<!-- C. 메모 페이지 -->
-<div id="memo" class="page hidden">
+<!-- C. 공부 일정 페이지 -->
+<div id="study" class="page hidden">
   <div class="frame">
     <button onclick="go('main')">⬅ 메인으로</button>
     <h2 id="title"></h2>
@@ -117,12 +117,17 @@ let users = JSON.parse(localStorage.getItem("users")) || {};
 let memos = JSON.parse(localStorage.getItem("memos")) || {};
 
 /* ===== 페이지 전환 ===== */
+function go(page){
+  show(page);
+  localStorage.setItem("page", page);
+  if(page === "study") drawCalendar();
+}
+
 function show(page){
   auth.classList.add("hidden");
   main.classList.add("hidden");
-  memo.classList.add("hidden");
+  study.classList.add("hidden");
   document.getElementById(page).classList.remove("hidden");
-  localStorage.setItem("page", page);
 }
 
 /* ===== 회원가입 ===== */
@@ -139,7 +144,7 @@ function login(){
   if(users[lid.value] === lpw.value){
     localStorage.setItem("login", lid.value);
     welcome.innerText = lid.value + " 님 환영!";
-    show("main");
+    go("main");
   } else {
     alert("아이디 또는 비밀번호 틀림");
   }
@@ -147,8 +152,7 @@ function login(){
 
 /* ===== 로그아웃 ===== */
 function logout(){
-  localStorage.removeItem("login");
-  localStorage.removeItem("page");
+  localStorage.clear();
   location.reload();
 }
 
@@ -156,19 +160,22 @@ function logout(){
 const logged = localStorage.getItem("login");
 if(logged){
   welcome.innerText = logged + " 님 환영!";
-  show(localStorage.getItem("page") || "main");
+  go(localStorage.getItem("page") || "main");
 }else{
   show("auth");
 }
 
 /* ===== 달력 ===== */
-const cal = document.getElementById("cal");
-const now = new Date();
-const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
-title.innerText = `📅 ${y}년 ${m+1}월 ${d}일`;
-
-function draw(){
+function drawCalendar(){
+  const cal = document.getElementById("cal");
   cal.querySelectorAll(".cell").forEach(e=>e.remove());
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const d = now.getDate();
+  title.innerText = `📚 ${y}년 ${m+1}월 ${d}일 공부 일정`;
+
   let f = new Date(y,m,1).getDay();
   let l = new Date(y,m+1,0).getDate();
 
@@ -179,6 +186,7 @@ function draw(){
     let c = document.createElement("div");
     c.className = "cell" + (i===d?" today":"");
     let t = document.createElement("textarea");
+    t.placeholder = i + "일 공부 메모";
     t.value = memos[key] || "";
     t.oninput = ()=>{
       memos[key] = t.value;
@@ -188,7 +196,6 @@ function draw(){
     cal.appendChild(c);
   }
 }
-draw();
 </script>
 
 </body>
