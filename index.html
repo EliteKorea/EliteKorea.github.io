@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <title>공부 일정</title>
@@ -7,34 +7,35 @@
 <style>
 *{box-sizing:border-box}
 
-:root{
-  --brightness:1;
+/* ===== 테마 색상 ===== */
+:root[data-theme="dark"]{
+  --bg:#020617;
+  --box:#1e293b;
+  --sub:#0f172a;
+  --text:#ffffff;
+}
+:root[data-theme="light"]{
+  --bg:#f8fafc;
+  --box:#ffffff;
+  --sub:#e5e7eb;
+  --text:#020617;
 }
 
 body{
   margin:0;
   height:100vh;
-  background:#020617;
-  color:white;
+  background:var(--bg);
+  color:var(--text);
   font-family:Arial;
   display:flex;
   justify-content:center;
   align-items:center;
 }
 
-#app{
-  width:100%;
-  height:100%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  filter: brightness(var(--brightness));
-}
-
-/* 공통 */
+/* 공통 박스 */
 .box{
   width:700px;
-  background:#1e293b;
+  background:var(--box);
   padding:20px;
   border-radius:14px;
   display:none;
@@ -53,41 +54,12 @@ button{
   font-weight:bold;
   cursor:pointer;
 }
-.link{
-  margin-top:10px;
-  text-align:center;
-  color:#38bdf8;
-  cursor:pointer;
-}
 
-/* 레이아웃 */
-.study-layout{
-  display:grid;
-  grid-template-columns:240px 1fr;
-  gap:12px;
-}
-
-/* 타이머 */
-.timer{
-  background:#0f172a;
-  padding:10px;
-  border-radius:10px;
-}
-.timer h3{text-align:center}
-
-/* 명언 */
-.quote{
-  background:#0f172a;
+/* 메인 구성 */
+.quote,.settings,.timer{
+  background:var(--sub);
   padding:12px;
   border-radius:10px;
-}
-
-/* 설정 */
-.settings{
-  background:#0f172a;
-  padding:10px;
-  border-radius:10px;
-  margin-top:10px;
 }
 
 /* 달력 */
@@ -98,7 +70,7 @@ button{
   margin-top:12px;
 }
 .day{
-  background:#020617;
+  background:var(--bg);
   height:120px;
   padding:6px;
   border-radius:8px;
@@ -107,8 +79,14 @@ button{
 .day textarea{
   height:85px;
   background:transparent;
-  color:white;
+  color:var(--text);
   resize:none;
+}
+
+.study-layout{
+  display:grid;
+  grid-template-columns:240px 1fr;
+  gap:12px;
 }
 .header{
   text-align:center;
@@ -120,15 +98,13 @@ button{
 
 <body>
 
-<div id="app">
-
 <!-- 로그인 -->
 <div class="box show" id="loginBox">
   <h2>로그인</h2>
   <input id="loginId" placeholder="아이디">
   <input id="loginPw" type="password" placeholder="비밀번호">
   <button onclick="login()">로그인</button>
-  <div class="link" onclick="show('signupBox')">회원가입</div>
+  <button onclick="show('signupBox')">회원가입</button>
 </div>
 
 <!-- 회원가입 -->
@@ -137,7 +113,7 @@ button{
   <input id="signId" placeholder="아이디">
   <input id="signPw" type="password" placeholder="비밀번호">
   <button onclick="signup()">가입하기</button>
-  <div class="link" onclick="show('loginBox')">로그인으로</div>
+  <button onclick="show('loginBox')">로그인으로</button>
 </div>
 
 <!-- 메인 -->
@@ -147,9 +123,8 @@ button{
   <div class="quote" id="quote"></div>
 
   <div class="settings">
-    🔆 밝기 설정
-    <input type="range" min="0.6" max="1.5" step="0.05"
-           id="brightnessSlider">
+    🌗 테마 설정
+    <button onclick="toggleTheme()">다크 / 라이트</button>
   </div>
 
   <button onclick="show('studyBox')">📅 공부 일정</button>
@@ -177,8 +152,6 @@ button{
   <button onclick="show('mainBox')">← 메인</button>
 </div>
 
-</div>
-
 <script>
 /* 화면 */
 function show(id){
@@ -189,12 +162,12 @@ function show(id){
 /* 회원 */
 function signup(){
   localStorage.setItem('user-'+signId.value, signPw.value);
-  alert('완료');
+  alert('회원가입 완료');
   show('loginBox');
 }
 function login(){
   if(localStorage.getItem('user-'+loginId.value)!==loginPw.value)
-    return alert('실패');
+    return alert('로그인 실패');
   localStorage.setItem('loginUser', loginId.value);
   enterMain();
 }
@@ -203,43 +176,37 @@ function logout(){
   show('loginBox');
 }
 function enterMain(){
-  welcome.innerText = loginUser+' 님 환영해';
+  welcome.innerText = localStorage.getItem('loginUser')+' 님 환영해';
   show('mainBox');
 }
-const loginUser = localStorage.getItem('loginUser');
-if(loginUser) enterMain();
+if(localStorage.getItem('loginUser')) enterMain();
 
 /* 명언 */
-const quotes=[
-  '오늘의 노력이 내일을 만든다',
-  '지금이 가장 빠르다',
-  '작게 시작해도 된다'
-];
-quote.innerText = quotes[Math.floor(Math.random()*quotes.length)];
+const quotes=['오늘의 노력이 내일을 만든다','지금이 가장 빠르다','포기하지 마라'];
+quote.innerText=quotes[Math.floor(Math.random()*quotes.length)];
 
-/* 밝기 */
-const slider = document.getElementById('brightnessSlider');
-const savedBrightness = localStorage.getItem('brightness') || 1;
-document.documentElement.style.setProperty('--brightness', savedBrightness);
-slider.value = savedBrightness;
-
-slider.oninput = ()=>{
-  document.documentElement.style.setProperty('--brightness', slider.value);
-  localStorage.setItem('brightness', slider.value);
-};
+/* 🌗 다크/라이트 */
+function toggleTheme(){
+  const html=document.documentElement;
+  const next=html.dataset.theme==='dark'?'light':'dark';
+  html.dataset.theme=next;
+  localStorage.setItem('theme',next);
+}
+const savedTheme=localStorage.getItem('theme');
+if(savedTheme) document.documentElement.dataset.theme=savedTheme;
 
 /* 타이머 */
-let timer,sec;
+let t,sec;
 function startTimer(){
   sec=(+h.value||0)*3600+(+m.value||0)*60+(+s.value||0);
-  clearInterval(timer);
-  timer=setInterval(()=>{
-    if(sec<=0){clearInterval(timer);return;}
+  clearInterval(t);
+  t=setInterval(()=>{
+    if(sec<=0){clearInterval(t);return;}
     sec--;
     timeView.innerText=sec+'초';
   },1000);
 }
-function stopTimer(){clearInterval(timer);}
+function stopTimer(){clearInterval(t);}
 
 /* 달력 */
 const cal=document.getElementById('calendar');
