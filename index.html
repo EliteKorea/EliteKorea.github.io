@@ -19,9 +19,10 @@ body {
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 10px;
-  align-items: start;
+  align-items: stretch;
 }
 
+/* 왼쪽 */
 .left {
   display: flex;
   flex-direction: column;
@@ -35,9 +36,12 @@ body {
   border: 3px solid black;
 }
 
-/* 달력 영역 크게 */
+/* 오른쪽 전체 높이 채우기 */
 .calendar-box {
-  min-height: 80vh;
+  height: calc(100vh - 20px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 버튼 */
@@ -47,16 +51,14 @@ button {
   font-family: monospace;
   cursor: pointer;
 }
-button:active {
-  background: #b0b0b0;
-}
+button:active { background: #b0b0b0; }
 
 /* 달력 */
 .calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
-  margin-top: 6px;
+  flex: 1;
 }
 
 .day {
@@ -67,12 +69,12 @@ button:active {
 }
 
 .cell {
-  height: 70px;
   border: 2px solid black;
   background: #f5f5f5;
   font-size: 12px;
   padding: 2px;
-  overflow: auto;
+  height: 110px;              /* ⭐ 고정 높이 */
+  overflow-y: auto;           /* ⭐ 안에서만 스크롤 */
 }
 
 /* 픽셀 OFF */
@@ -85,10 +87,7 @@ button:active {
 }
 
 /* 리스트 */
-ul {
-  margin: 5px 0 0 15px;
-  padding: 0;
-}
+ul { margin: 5px 0 0 15px; padding: 0; }
 </style>
 </head>
 
@@ -98,7 +97,6 @@ ul {
 
   <!-- 왼쪽 -->
   <div class="left">
-
     <div class="box">
       <h3>⏱ 타이머</h3>
       <input id="m" type="number" value="1" style="width:50px"> 분
@@ -117,16 +115,8 @@ ul {
       <button onclick="toggleStyle()">픽셀 모드 ON / OFF</button>
     </div>
 
-    <div class="box">
-      <h3>💖 후원</h3>
-      <p>후원 자리</p>
-    </div>
-
-    <div class="box">
-      <h3>📢 광고</h3>
-      <p>광고 자리</p>
-    </div>
-
+    <div class="box"><h3>💖 후원</h3></div>
+    <div class="box"><h3>📢 광고</h3></div>
   </div>
 
   <!-- 오른쪽 -->
@@ -141,7 +131,6 @@ ul {
     <hr>
 
     <input type="date" id="date">
-    <br><br>
     <input id="todo" placeholder="할 일 입력">
     <button onclick="addTodo()">추가</button>
 
@@ -151,118 +140,77 @@ ul {
 </div>
 
 <script>
-/* 타이머 */
 function startTimer() {
   let t = Number(m.value) * 60 + Number(s.value);
   const i = setInterval(() => {
-    if (t <= 0) {
-      clearInterval(i);
-      time.innerText = "끝!";
-      return;
-    }
-    t--;
-    time.innerText =
-      Math.floor(t / 60) + "분 " + (t % 60) + "초";
-  }, 1000);
+    if (t <= 0) return clearInterval(i), time.innerText="끝!";
+    t--; time.innerText = Math.floor(t/60)+"분 "+(t%60)+"초";
+  },1000);
 }
 
-/* 명언 */
-const quotes = [
-  "지금 시작해도 늦지 않다.",
-  "완벽보다 실행.",
-  "계속하면 된다."
-];
-quote.innerText = quotes[Math.floor(Math.random() * quotes.length)];
+quote.innerText = ["지금 시작해도 늦지 않다.","완벽보다 실행.","계속하면 된다."]
+[Math.floor(Math.random()*3)];
 
-/* 픽셀 ON/OFF */
 function toggleStyle() {
   document.body.classList.toggle("no-pixel");
 }
 
-/* 데이터 */
 let data = JSON.parse(localStorage.getItem("todo")) || {};
 const calendar = document.getElementById("calendar");
 const today = new Date();
-const year = today.getFullYear();
-const month = today.getMonth();
+const y = today.getFullYear();
+const mth = today.getMonth();
 
-/* 달력 */
 function drawCalendar() {
-  calendar.querySelectorAll(".cell").forEach(c => c.remove());
+  calendar.querySelectorAll(".cell").forEach(c=>c.remove());
+  const first = new Date(y,mth,1).getDay();
+  const last = new Date(y,mth+1,0).getDate();
 
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDate = new Date(year, month + 1, 0).getDate();
+  for(let i=0;i<first;i++) calendar.appendChild(document.createElement("div"));
 
-  for (let i = 0; i < firstDay; i++) {
-    calendar.appendChild(document.createElement("div"));
-  }
-
-  for (let d = 1; d <= lastDate; d++) {
-    const cell = document.createElement("div");
-    cell.className = "cell";
-
-    const dateStr =
-      year + "-" +
-      String(month + 1).padStart(2, "0") + "-" +
-      String(d).padStart(2, "0");
-
-    cell.innerHTML = "<b>" + d + "</b><br>";
-
-    if (data[dateStr]) {
-      data[dateStr].forEach(t => {
-        const p = document.createElement("div");
-        p.innerText = "• " + t;
-        cell.appendChild(p);
-      });
-    }
-
+  for(let d=1;d<=last;d++){
+    const cell=document.createElement("div");
+    cell.className="cell";
+    const ds=y+"-"+String(mth+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    cell.innerHTML="<b>"+d+"</b><br>";
+    (data[ds]||[]).forEach(t=>{
+      const p=document.createElement("div");
+      p.innerText="• "+t;
+      cell.appendChild(p);
+    });
     calendar.appendChild(cell);
   }
 }
 drawCalendar();
 
-/* 할 일 추가 */
-function addTodo() {
-  if (!date.value || !todo.value) return;
-
-  data[date.value] = data[date.value] || [];
+function addTodo(){
+  if(!date.value||!todo.value) return;
+  data[date.value]=data[date.value]||[];
   data[date.value].push(todo.value);
-  localStorage.setItem("todo", JSON.stringify(data));
-
-  todo.value = "";
-  showList();
-  drawCalendar();
+  localStorage.setItem("todo",JSON.stringify(data));
+  todo.value="";
+  showList(); drawCalendar();
 }
 
-/* 리스트 표시 + 삭제 */
-function showList() {
-  list.innerHTML = "";
-
-  (data[date.value] || []).forEach((t, i) => {
-    const li = document.createElement("li");
-    li.innerText = t + " ";
-
-    const del = document.createElement("button");
-    del.innerText = "❌";
-    del.onclick = () => deleteTodo(i);
-
-    li.appendChild(del);
+function showList(){
+  list.innerHTML="";
+  (data[date.value]||[]).forEach((t,i)=>{
+    const li=document.createElement("li");
+    const btn=document.createElement("button");
+    btn.innerText="❌";
+    btn.onclick=()=>deleteTodo(i);
+    li.append(t,btn);
     list.appendChild(li);
   });
 }
 
-/* 삭제 */
-function deleteTodo(i) {
-  data[date.value].splice(i, 1);
-  if (data[date.value].length === 0) {
-    delete data[date.value];
-  }
-  localStorage.setItem("todo", JSON.stringify(data));
-  showList();
-  drawCalendar();
+function deleteTodo(i){
+  data[date.value].splice(i,1);
+  if(!data[date.value].length) delete data[date.value];
+  localStorage.setItem("todo",JSON.stringify(data));
+  showList(); drawCalendar();
 }
-
-date.onchange = showList;
+date.onchange=showList;
 </script>
 
 </body>
