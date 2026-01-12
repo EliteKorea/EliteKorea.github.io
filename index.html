@@ -18,10 +18,14 @@ body.dark .left{background:#333;}
 .right{flex:1;padding:15px;display:flex;flex-direction:column;}
 canvas{position:fixed;top:0;left:0;z-index:-1;}
 .panel{margin-top:10px;}
-.timer svg{width:180px;height:180px;}
-circle{fill:none;stroke-width:10;}
-.bg{stroke:#ddd;}
-.progress{stroke:#4caf50;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;stroke-dasharray:565;}
+/* 타이머 */
+.timer-container{position:relative;width:200px;height:200px;margin:auto;}
+.timer-container svg{width:200px;height:200px;}
+.timer-container circle{fill:none;stroke-width:12;}
+.timer-container .bg{stroke:#ddd;}
+.timer-container .progress{stroke:#4caf50;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;stroke-dasharray:565;stroke-dashoffset:0;}
+.timer-container #time{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:bold;text-align:center;}
+/* 달력 */
 .calendar{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px;}
 .day{background:#fff;padding:5px;border-radius:6px;font-size:12px;}
 body.dark .day{background:#444;}
@@ -44,12 +48,13 @@ button{cursor:pointer;}
 
     <!-- 타이머 -->
     <div class="panel" id="timerPanel">
-      <h3>⏱ 타이머</h3>
-      <svg>
-        <circle class="bg" cx="90" cy="90" r="80"/>
-        <circle class="progress" cx="90" cy="90" r="80" id="circle"/>
-      </svg>
-      <div id="time">00:00:00</div>
+      <div class="timer-container">
+        <svg>
+          <circle class="bg" cx="100" cy="100" r="90"/>
+          <circle class="progress" cx="100" cy="100" r="90" id="circle"/>
+        </svg>
+        <div id="time">00:00:00</div>
+      </div>
       <input id="h" placeholder="시" size="2">
       <input id="m" placeholder="분" size="2">
       <input id="s" placeholder="초" size="2"><br>
@@ -106,8 +111,7 @@ function draw(){
   let h=Math.floor(r/3600),
       m=Math.floor((r%3600)/60),
       s=r%60;
-  time.innerText=
-    `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  time.innerText=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   c.style.strokeDashoffset=max-(r/t)*max;
 }
 function start(){
