@@ -6,6 +6,11 @@
 
 <style>
 *{box-sizing:border-box}
+
+:root{
+  --brightness:1;
+}
+
 body{
   margin:0;
   height:100vh;
@@ -15,6 +20,15 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
+}
+
+#app{
+  width:100%;
+  height:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  filter: brightness(var(--brightness));
 }
 
 /* 공통 */
@@ -60,14 +74,20 @@ button{
   border-radius:10px;
 }
 .timer h3{text-align:center}
-.timer input{margin-top:4px}
 
 /* 명언 */
 .quote{
   background:#0f172a;
   padding:12px;
   border-radius:10px;
-  font-size:14px;
+}
+
+/* 설정 */
+.settings{
+  background:#0f172a;
+  padding:10px;
+  border-radius:10px;
+  margin-top:10px;
 }
 
 /* 달력 */
@@ -81,26 +101,26 @@ button{
   background:#020617;
   height:120px;
   padding:6px;
-  font-size:13px;
   border-radius:8px;
 }
 .today{border:2px solid #38bdf8}
 .day textarea{
   height:85px;
-  font-size:13px;
   background:transparent;
   color:white;
   resize:none;
 }
 .header{
   text-align:center;
-  font-weight:bold;
   font-size:18px;
+  font-weight:bold;
 }
 </style>
 </head>
 
 <body>
+
+<div id="app">
 
 <!-- 로그인 -->
 <div class="box show" id="loginBox">
@@ -123,7 +143,15 @@ button{
 <!-- 메인 -->
 <div class="box" id="mainBox">
   <h2 id="welcome"></h2>
+
   <div class="quote" id="quote"></div>
+
+  <div class="settings">
+    🔆 밝기 설정
+    <input type="range" min="0.6" max="1.5" step="0.05"
+           id="brightnessSlider">
+  </div>
+
   <button onclick="show('studyBox')">📅 공부 일정</button>
   <button onclick="logout()">로그아웃</button>
 </div>
@@ -133,27 +161,22 @@ button{
   <div class="header" id="monthTitle"></div>
 
   <div class="study-layout">
-
-    <!-- 타이머 -->
     <div class="timer">
       <h3>⏱ 타이머</h3>
-      <input id="h" placeholder="시" type="number" min="0">
-      <input id="m" placeholder="분" type="number" min="0">
-      <input id="s" placeholder="초" type="number" min="0">
+      <input id="h" placeholder="시" type="number">
+      <input id="m" placeholder="분" type="number">
+      <input id="s" placeholder="초" type="number">
       <button onclick="startTimer()">시작</button>
       <button onclick="stopTimer()">정지</button>
-      <button onclick="resetTimer()">초기화</button>
-      <div id="timeView" style="text-align:center;margin-top:6px"></div>
+      <div id="timeView"></div>
     </div>
 
-    <!-- 달력 -->
-    <div>
-      <div class="calendar" id="calendar"></div>
-    </div>
-
+    <div class="calendar" id="calendar"></div>
   </div>
 
-  <button onclick="show('mainBox')">← 메인으로</button>
+  <button onclick="show('mainBox')">← 메인</button>
+</div>
+
 </div>
 
 <script>
@@ -165,14 +188,13 @@ function show(id){
 
 /* 회원 */
 function signup(){
-  if(!signId.value||!signPw.value) return alert('입력해');
   localStorage.setItem('user-'+signId.value, signPw.value);
-  alert('회원가입 완료');
+  alert('완료');
   show('loginBox');
 }
 function login(){
-  const pw=localStorage.getItem('user-'+loginId.value);
-  if(pw!==loginPw.value) return alert('로그인 실패');
+  if(localStorage.getItem('user-'+loginId.value)!==loginPw.value)
+    return alert('실패');
   localStorage.setItem('loginUser', loginId.value);
   enterMain();
 }
@@ -181,74 +203,65 @@ function logout(){
   show('loginBox');
 }
 function enterMain(){
-  welcome.innerText = localStorage.getItem('loginUser')+' 님 환영해';
+  welcome.innerText = loginUser+' 님 환영해';
   show('mainBox');
 }
-if(localStorage.getItem('loginUser')) enterMain();
+const loginUser = localStorage.getItem('loginUser');
+if(loginUser) enterMain();
 
 /* 명언 */
 const quotes=[
   '오늘의 노력이 내일을 만든다',
-  '지금 하는 게 제일 빠르다',
-  '포기하지 마라',
-  '작은 습관이 큰 차이를 만든다'
+  '지금이 가장 빠르다',
+  '작게 시작해도 된다'
 ];
 quote.innerText = quotes[Math.floor(Math.random()*quotes.length)];
 
+/* 밝기 */
+const slider = document.getElementById('brightnessSlider');
+const savedBrightness = localStorage.getItem('brightness') || 1;
+document.documentElement.style.setProperty('--brightness', savedBrightness);
+slider.value = savedBrightness;
+
+slider.oninput = ()=>{
+  document.documentElement.style.setProperty('--brightness', slider.value);
+  localStorage.setItem('brightness', slider.value);
+};
+
 /* 타이머 */
-let timer=null,sec=0;
+let timer,sec;
 function startTimer(){
-  sec = (+h.value||0)*3600 + (+m.value||0)*60 + (+s.value||0);
-  if(sec<=0) return;
-  stopTimer();
+  sec=(+h.value||0)*3600+(+m.value||0)*60+(+s.value||0);
+  clearInterval(timer);
   timer=setInterval(()=>{
-    if(sec<=0){stopTimer();return;}
+    if(sec<=0){clearInterval(timer);return;}
     sec--;
-    renderTime();
+    timeView.innerText=sec+'초';
   },1000);
 }
 function stopTimer(){clearInterval(timer);}
-function resetTimer(){
-  stopTimer();
-  timeView.innerText='';
-}
-function renderTime(){
-  const hh=Math.floor(sec/3600);
-  const mm=Math.floor((sec%3600)/60);
-  const ss=sec%60;
-  timeView.innerText=`${hh} : ${mm} : ${ss}`;
-}
 
 /* 달력 */
 const cal=document.getElementById('calendar');
 const now=new Date();
-const year=now.getFullYear();
-const month=now.getMonth();
-monthTitle.innerText=`${year}년 ${month+1}월`;
+const y=now.getFullYear(), mth=now.getMonth();
+monthTitle.innerText=`${y}년 ${mth+1}월`;
 
-function renderCalendar(){
-  cal.innerHTML='';
-  const first=new Date(year,month,1).getDay();
-  const last=new Date(year,month+1,0).getDate();
+for(let i=0;i<new Date(y,mth,1).getDay();i++)
+  cal.appendChild(document.createElement('div'));
 
-  for(let i=0;i<first;i++) cal.appendChild(document.createElement('div'));
-
-  for(let d=1;d<=last;d++){
-    const day=document.createElement('div');
-    day.className='day';
-    if(d===now.getDate()) day.classList.add('today');
-
-    const memo=document.createElement('textarea');
-    const key=`memo-${year}-${month}-${d}`;
-    memo.value=localStorage.getItem(key)||'';
-    memo.oninput=()=>localStorage.setItem(key,memo.value);
-
-    day.innerHTML=`<b>${d}</b>`;
-    day.appendChild(memo);
-    cal.appendChild(day);
-  }
+for(let d=1;d<=new Date(y,mth+1,0).getDate();d++){
+  const div=document.createElement('div');
+  div.className='day';
+  if(d===now.getDate()) div.classList.add('today');
+  const ta=document.createElement('textarea');
+  const k=`memo-${y}-${mth}-${d}`;
+  ta.value=localStorage.getItem(k)||'';
+  ta.oninput=()=>localStorage.setItem(k,ta.value);
+  div.innerHTML=`<b>${d}</b>`;
+  div.appendChild(ta);
+  cal.appendChild(div);
 }
-renderCalendar();
 </script>
 
 </body>
