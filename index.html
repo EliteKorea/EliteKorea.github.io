@@ -81,10 +81,13 @@ textarea{
 <div id="login" class="center">
   <div class="box">
     <h2>로그인 / 회원가입</h2>
+
     <input id="lid" placeholder="아이디">
     <input id="lpw" type="password" placeholder="비밀번호">
     <button onclick="login()">로그인</button>
+
     <hr>
+
     <input id="sid" placeholder="아이디">
     <input id="spw" type="password" placeholder="비밀번호">
     <button onclick="signup()">회원가입</button>
@@ -138,29 +141,45 @@ const quotes=[
 ];
 quote.innerText=quotes[Math.floor(Math.random()*quotes.length)];
 
-/* 회원 */
-let users=JSON.parse(localStorage.getItem("users"))||{};
+/* 회원가입 */
 function signup(){
-  users[sid.value]=spw.value;
-  localStorage.setItem("users",JSON.stringify(users));
-  alert("가입 완료");
+  const id = sid.value;
+  const pw = spw.value;
+  if(!id || !pw){ alert("입력해"); return; }
+
+  let users = JSON.parse(localStorage.getItem("users")) || {};
+  if(users[id]){ alert("이미 있음"); return; }
+
+  users[id] = pw;
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("회원가입 완료");
 }
+
+/* 로그인 */
 function login(){
-  if(users[lid.value]===lpw.value){
-    localStorage.setItem("login",lid.value);
+  const id = lid.value;
+  const pw = lpw.value;
+
+  let users = JSON.parse(localStorage.getItem("users")) || {};
+  if(users[id] === pw){
+    localStorage.setItem("login", id);
     showMain();
-  }else alert("실패");
+  }else{
+    alert("아이디 또는 비번 틀림");
+  }
 }
+
+/* 로그아웃 */
 function logout(){
-  localStorage.clear();
+  localStorage.removeItem("login");
   location.reload();
 }
 
-/* 화면 */
+/* 화면 이동 */
 function showMain(){
-  login.classList.add("hidden");
+  loginDiv().classList.add("hidden");
   main.classList.remove("hidden");
-  welcome.innerText=localStorage.getItem("login")+"님 환영!";
+  welcome.innerText = localStorage.getItem("login") + "님 환영!";
 }
 function goStudy(){
   main.classList.add("hidden");
@@ -171,15 +190,20 @@ function goMain(){
   study.classList.add("hidden");
   main.classList.remove("hidden");
 }
-if(localStorage.getItem("login")) showMain();
+function loginDiv(){ return document.getElementById("login"); }
+
+/* 자동 로그인 */
+if(localStorage.getItem("login")){
+  showMain();
+}
 
 /* 타이머 */
-let timer=null,remain=0;
+let timer=null, remain=0;
 function start(){
   stop();
   remain=Number(h.value)*3600+Number(m.value)*60+Number(s.value);
   timer=setInterval(()=>{
-    if(remain<=0){stop();return;}
+    if(remain<=0){ stop(); return; }
     remain--;
     let hh=String(Math.floor(remain/3600)).padStart(2,"0");
     let mm=String(Math.floor(remain%3600/60)).padStart(2,"0");
@@ -191,16 +215,18 @@ function stop(){
   clearInterval(timer);
 }
 
-/* 달력 (새로고침해도 유지) */
+/* 달력 */
 let memos=JSON.parse(localStorage.getItem("memos"))||{};
 function drawCalendar(){
   cal.innerHTML="";
   const now=new Date();
-  const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+  const y=now.getFullYear(), m=now.getMonth(), d=now.getDate();
   title.innerText=`${y}년 ${m+1}월 ${d}일`;
   const first=new Date(y,m,1).getDay();
   const last=new Date(y,m+1,0).getDate();
+
   for(let i=0;i<first;i++) cal.appendChild(document.createElement("div"));
+
   for(let i=1;i<=last;i++){
     const key=`${localStorage.getItem("login")}_${y}-${m+1}-${i}`;
     const cell=document.createElement("div");
