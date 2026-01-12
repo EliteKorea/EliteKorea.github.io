@@ -11,28 +11,57 @@ body{
   background:#cde7ff;
 }
 .hidden{display:none;}
-button{cursor:pointer; padding:6px;}
-input{padding:6px; margin:4px;}
-
-.page{
-  padding:40px;
-  text-align:center;
-}
-
+button,input{padding:6px;margin:4px;}
+.page{padding:20px;}
 .frame{
-  width:90%;
-  max-width:500px;
-  margin:auto;
   background:#fff;
   border:4px solid #6b8cff;
-  padding:20px;
+  padding:15px;
 }
 
-/* 메뉴 */
-.menu button{
-  width:220px;
-  margin:10px auto;
-  display:block;
+/* 메인 */
+.main-layout{
+  display:grid;
+  grid-template-columns:260px 1fr;
+  gap:15px;
+}
+
+/* 박스 */
+.box{
+  border:2px dashed #8aa4ff;
+  padding:10px;
+  margin-bottom:10px;
+  background:#fff;
+}
+
+/* 공부 일정 */
+.study-layout{
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:15px;
+}
+
+/* 타이머 */
+.timer-circle{
+  width:200px;
+  height:200px;
+  border-radius:50%;
+  border:8px solid #6b8cff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  margin:auto;
+  position:relative;
+}
+.timer-progress{
+  position:absolute;
+  top:0;left:0;
+  width:100%;height:100%;
+  border-radius:50%;
+  clip-path:polygon(50% 50%,100% 0,100% 100%);
+  background:hotpink;
+  transform:rotate(0deg);
 }
 
 /* 달력 */
@@ -41,18 +70,13 @@ input{padding:6px; margin:4px;}
   grid-template-columns:repeat(7,1fr);
   gap:4px;
 }
-.day{
-  background:#dbe4ff;
-  border:1px solid #8aa4ff;
-}
+.day{background:#dbe4ff;text-align:center;}
 .cell{
   height:120px;
   border:2px solid #8aa4ff;
   background:#fffef5;
 }
-.today{
-  border:3px solid hotpink;
-}
+.today{border:3px solid hotpink;}
 textarea{
   width:100%;
   height:90px;
@@ -66,131 +90,162 @@ textarea{
 
 <body>
 
-<!-- A. 로그인 / 회원가입 -->
-<div id="auth" class="page">
-  <div class="frame">
-    <h1>🔐 로그인 / 회원가입</h1>
-
-    <h3>로그인</h3>
-    <input id="lid" placeholder="아이디"><br>
-    <input id="lpw" type="password" placeholder="비밀번호"><br>
-    <button onclick="login()">로그인</button>
-
-    <hr>
-
-    <h3>회원가입</h3>
-    <input id="sid" placeholder="아이디"><br>
-    <input id="spw" type="password" placeholder="비밀번호"><br>
-    <button onclick="signup()">회원가입</button>
-  </div>
+<!-- 로그인 / 회원가입 -->
+<div id="auth" class="page frame">
+  <h2>로그인 / 회원가입</h2>
+  <input id="lid" placeholder="아이디">
+  <input id="lpw" type="password" placeholder="비밀번호">
+  <button onclick="login()">로그인</button>
+  <br><br>
+  <input id="sid" placeholder="아이디">
+  <input id="spw" type="password" placeholder="비밀번호">
+  <button onclick="signup()">회원가입</button>
 </div>
 
-<!-- B. 메인 페이지 -->
+<!-- 메인 -->
 <div id="main" class="page hidden">
-  <div class="frame">
-    <h1>🏠 메인 페이지</h1>
-    <p id="welcome"></p>
-
-    <div class="menu">
+  <div class="frame main-layout">
+    <div>
+      <div class="box">
+        <h3>💬 오늘의 명언</h3>
+        <p id="quote"></p>
+      </div>
       <button onclick="go('study')">📚 공부 일정</button>
-      <button onclick="logout()">🚪 로그아웃</button>
+      <button onclick="logout()">로그아웃</button>
+    </div>
+    <div>
+      <h2 id="welcome"></h2>
     </div>
   </div>
 </div>
 
-<!-- C. 공부 일정 페이지 -->
+<!-- 공부 일정 -->
 <div id="study" class="page hidden">
-  <div class="frame">
-    <button onclick="go('main')">⬅ 메인으로</button>
-    <h2 id="title"></h2>
+  <div class="frame study-layout">
+    <!-- 타이머 -->
+    <div>
+      <div class="box">
+        <h3>⏱ 공부 타이머</h3>
+        <input id="h" type="number" value="1" style="width:50px">시
+        <input id="m" type="number" value="1" style="width:50px">분
+        <input id="s" type="number" value="1" style="width:50px">초
+        <br>
+        <button onclick="startTimer()">시작</button>
+        <button onclick="stopTimer()">정지</button>
 
-    <div class="calendar" id="cal">
-      <div class="day">일</div><div class="day">월</div><div class="day">화</div>
-      <div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div>
+        <div class="timer-circle">
+          <div class="timer-progress" id="progress"></div>
+          <div id="timeText">00:00:00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 달력 -->
+    <div>
+      <button onclick="go('main')">⬅ 메인</button>
+      <h2 id="title"></h2>
+
+      <div class="calendar" id="cal">
+        <div class="day">일</div><div class="day">월</div><div class="day">화</div>
+        <div class="day">수</div><div class="day">목</div><div class="day">금</div>
+        <div class="day">토</div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-/* ===== 데이터 ===== */
-let users = JSON.parse(localStorage.getItem("users")) || {};
-let memos = JSON.parse(localStorage.getItem("memos")) || {};
+/* ===== 명언 ===== */
+const quotes=[
+  "오늘의 노력이 내일의 실력이다",
+  "포기하지 않으면 실패가 아니다",
+  "조금씩 해도 계속하면 된다"
+];
+quote.innerText=quotes[Math.floor(Math.random()*quotes.length)];
 
-/* ===== 페이지 전환 ===== */
-function go(page){
-  show(page);
-  localStorage.setItem("page", page);
-  if(page === "study") drawCalendar();
-}
-
-function show(page){
-  auth.classList.add("hidden");
-  main.classList.add("hidden");
-  study.classList.add("hidden");
-  document.getElementById(page).classList.remove("hidden");
-}
-
-/* ===== 회원가입 ===== */
+/* ===== 회원 ===== */
+let users=JSON.parse(localStorage.getItem("users"))||{};
 function signup(){
-  if(!sid.value || !spw.value) return alert("입력해");
-  if(users[sid.value]) return alert("이미 있음");
-  users[sid.value] = spw.value;
-  localStorage.setItem("users", JSON.stringify(users));
-  alert("회원가입 완료!");
+  users[sid.value]=spw.value;
+  localStorage.setItem("users",JSON.stringify(users));
+  alert("가입 완료");
 }
-
-/* ===== 로그인 ===== */
 function login(){
-  if(users[lid.value] === lpw.value){
-    localStorage.setItem("login", lid.value);
-    welcome.innerText = lid.value + " 님 환영!";
+  if(users[lid.value]===lpw.value){
+    localStorage.setItem("login",lid.value);
+    welcome.innerText=lid.value+"님 환영!";
     go("main");
-  } else {
-    alert("아이디 또는 비밀번호 틀림");
-  }
+  }else alert("실패");
 }
-
-/* ===== 로그아웃 ===== */
 function logout(){
   localStorage.clear();
   location.reload();
 }
 
-/* ===== 새로고침 복구 ===== */
-const logged = localStorage.getItem("login");
-if(logged){
-  welcome.innerText = logged + " 님 환영!";
-  go(localStorage.getItem("page") || "main");
-}else{
-  show("auth");
+/* ===== 페이지 ===== */
+function go(p){
+  auth.classList.add("hidden");
+  main.classList.add("hidden");
+  study.classList.add("hidden");
+  document.getElementById(p).classList.remove("hidden");
+  localStorage.setItem("page",p);
+  if(p==="study") drawCalendar();
+}
+if(localStorage.getItem("login")){
+  welcome.innerText=localStorage.getItem("login")+"님 환영!";
+  go(localStorage.getItem("page")||"main");
+}
+
+/* ===== 타이머 ===== */
+let total=0,remain=0,timer=null;
+function startTimer(){
+  total=remain=
+    Number(h.value)*3600+
+    Number(m.value)*60+
+    Number(s.value);
+  if(total<=0) return;
+  updateTimer();
+  timer=setInterval(()=>{
+    remain--;
+    updateTimer();
+    if(remain<=0) stopTimer();
+  },1000);
+}
+function stopTimer(){
+  clearInterval(timer);
+}
+function updateTimer(){
+  let hr=Math.floor(remain/3600);
+  let mi=Math.floor(remain%3600/60);
+  let se=remain%60;
+  timeText.innerText=
+    String(hr).padStart(2,"0")+":"+
+    String(mi).padStart(2,"0")+":"+
+    String(se).padStart(2,"0");
+  let deg=(remain/total)*360;
+  progress.style.transform=`rotate(${deg}deg)`;
 }
 
 /* ===== 달력 ===== */
+let memos=JSON.parse(localStorage.getItem("memos"))||{};
 function drawCalendar(){
-  const cal = document.getElementById("cal");
+  const cal=document.getElementById("cal");
   cal.querySelectorAll(".cell").forEach(e=>e.remove());
-
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  const d = now.getDate();
-  title.innerText = `📚 ${y}년 ${m+1}월 ${d}일 공부 일정`;
-
-  let f = new Date(y,m,1).getDay();
-  let l = new Date(y,m+1,0).getDate();
-
+  const now=new Date();
+  const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+  title.innerText=`📅 ${y}년 ${m+1}월 ${d}일 공부 일정`;
+  let f=new Date(y,m,1).getDay();
+  let l=new Date(y,m+1,0).getDate();
   for(let i=0;i<f;i++) cal.appendChild(document.createElement("div"));
-
   for(let i=1;i<=l;i++){
-    let key = `${localStorage.getItem("login")}_${y}-${m+1}-${i}`;
-    let c = document.createElement("div");
-    c.className = "cell" + (i===d?" today":"");
-    let t = document.createElement("textarea");
-    t.placeholder = i + "일 공부 메모";
-    t.value = memos[key] || "";
-    t.oninput = ()=>{
-      memos[key] = t.value;
-      localStorage.setItem("memos", JSON.stringify(memos));
+    let key=`${localStorage.getItem("login")}_${y}-${m+1}-${i}`;
+    let c=document.createElement("div");
+    c.className="cell"+(i===d?" today":"");
+    let t=document.createElement("textarea");
+    t.value=memos[key]||"";
+    t.oninput=()=>{
+      memos[key]=t.value;
+      localStorage.setItem("memos",JSON.stringify(memos));
     };
     c.appendChild(t);
     cal.appendChild(c);
