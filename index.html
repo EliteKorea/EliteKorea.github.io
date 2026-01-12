@@ -30,9 +30,11 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
 }
 body.dark .panel{background:#444;color:white;}
 
-/* 메모 패널 기본 크기 + 클릭 시 확대 */
-.panel#memoPanel { width: 400px; height: 300px; }
-.panel#memoPanel.expanded { width: 500px; height: 400px; }
+/* 메모 패널 기본 크기만 유지 */
+.panel#memoPanel { 
+  width: 400px; 
+  height: 300px; 
+}
 
 /* 타이머 */
 .timer-container{position:relative;width:200px;height:200px;margin:auto;}
@@ -114,26 +116,23 @@ function toggleMenu(){
   document.getElementById("leftMenu").classList.toggle("closed",!menuOpen);
 }
 
-/* ===== 패널 토글 + 메모 확대 ===== */
+/* ===== 패널 토글 (메모 확대 제거) ===== */
 function togglePanel(id, btn){
   const panel=document.getElementById(id);
   if(panel.style.display==='block'){ // 이미 열려있으면 닫기
     panel.style.display='none';
-    panel.classList.remove('expanded'); // 축소
   } else { // 닫혀있으면 열기
     // 다른 패널 모두 닫기
     document.querySelectorAll('.panel').forEach(p=>{
       p.style.display='none';
-      p.classList.remove('expanded');
     });
-    // 선택된 패널 버튼 아래 배치 후 표시
+    // 선택된 패널 버튼 바로 아래 배치 후 표시
     btn.insertAdjacentElement('afterend', panel);
     panel.style.display='block';
-    if(id==='memoPanel') panel.classList.add('expanded'); // 메모만 확대
   }
 }
 
-/* 달력 클릭 시 메모 패널 토글 + 확대 */
+// 달력 클릭 시 메모 패널 열기/닫기 (확대 없음)
 document.querySelectorAll('.day').forEach(day=>{
   day.onclick=()=>{
     const memoBtn=document.querySelector('.menu-btn:nth-child(3)');
@@ -175,7 +174,7 @@ for(let d=1;d<=30;d++){
   const ta=document.createElement("textarea");
   ta.value=localStorage["d"+d]||"";
   ta.oninput=()=>localStorage["d"+d]=ta.value;
-  // 클릭하면 메모 패널 토글 + 확대
+  // 클릭 시 메모 패널 토글 (확대 없음)
   box.onclick=()=>{
     const memoBtn=document.querySelector('.menu-btn:nth-child(3)');
     togglePanel('memoPanel', memoBtn);
