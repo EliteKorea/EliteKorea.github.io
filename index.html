@@ -11,10 +11,11 @@ body.dark{background:#222;color:white;}
 .left{width:260px;padding:15px;background:#fff;transition:width 0.3s;}
 body.dark .left{background:#333;}
 .menu-header{font-weight:bold;font-size:18px;cursor:pointer;margin-bottom:15px;}
-.menu-btn{display:block;width:100%;padding:10px;margin-bottom:8px;background:#eee;border:none;text-align:left;cursor:pointer;}
+.menu-btn{display:flex;align-items:center;width:100%;padding:10px;margin-bottom:8px;background:#eee;border:none;cursor:pointer;justify-content:center;}
 .menu-btn:hover{background:#ddd;}
 .left.closed{width:60px;}
-.left.closed .menu-btn{display:none;}
+.left.closed .menu-btn span{text-align:center;font-size:24px;display:block;}
+.left.closed .panel{display:none;}
 .right{flex:1;padding:15px;display:flex;flex-direction:column;}
 canvas{position:fixed;top:0;left:0;z-index:-1;}
 
@@ -29,7 +30,6 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
   transition: all 0.3s ease;
 }
 body.dark .panel{background:#444;color:white;}
-
 /* 선택된 패널 */
 .panel.active{
   height:auto;
@@ -48,11 +48,12 @@ body.dark .panel.active{background:#555;}
 
 /* 달력 */
 .calendar{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px;}
-.day{background:#fff;padding:5px;border-radius:6px;font-size:12px;}
+.day{background:#fff;padding:5px;border-radius:6px;font-size:12px;cursor:pointer;}
 body.dark .day{background:#444;}
 .day textarea{width:100%;height:70px;resize:none;}
 .top{display:flex;justify-content:space-between;align-items:center;}
 button{cursor:pointer;}
+#quote{margin-bottom:10px;font-style:italic;}
 </style>
 </head>
 <body>
@@ -63,9 +64,11 @@ button{cursor:pointer;}
   <!-- 왼쪽 메뉴 -->
   <div class="left" id="leftMenu">
     <div class="menu-header" onclick="toggleMenu()">☰ 메뉴</div>
-    <button class="menu-btn" onclick="showPanel('timerPanel')">⏱ 타이머</button>
-    <button class="menu-btn" onclick="showPanel('checkPanel')">📌 출석</button>
-    <button class="menu-btn" onclick="showPanel('memoPanel')">📝 메모/달력</button>
+    
+    <!-- 아이콘 메뉴 -->
+    <button class="menu-btn" onclick="showPanel('timerPanel')"><span>⏱</span> <span style="display:none;">타이머</span></button>
+    <button class="menu-btn" onclick="showPanel('checkPanel')"><span>📌</span> <span style="display:none;">출석</span></button>
+    <button class="menu-btn" onclick="showPanel('memoPanel')"><span>📝</span> <span style="display:none;">메모</span></button>
 
     <!-- 타이머 -->
     <div class="panel" id="timerPanel">
@@ -98,6 +101,7 @@ button{cursor:pointer;}
 
   <!-- 오른쪽 -->
   <div class="right">
+    <div id="quote">“오늘의 명언: 작은 습관이 큰 변화를 만든다.”</div>
     <div class="top">
       <h2 id="dateDisplay"></h2>
       <button onclick="mode()">🌙/☀️</button>
@@ -112,6 +116,10 @@ let menuOpen=true;
 function toggleMenu(){
   menuOpen=!menuOpen;
   document.getElementById("leftMenu").classList.toggle("closed",!menuOpen);
+  // 아이콘만 표시
+  document.querySelectorAll('.menu-btn span:nth-child(2)').forEach(span=>{
+    span.style.display = menuOpen ? 'inline' : 'none';
+  });
 }
 
 /* ===== 패널 전환 & 축소/확대 ===== */
@@ -160,6 +168,8 @@ for(let d=1;d<=30;d++){
   const ta=document.createElement("textarea");
   ta.value=localStorage["d"+d]||"";
   ta.oninput=()=>localStorage["d"+d]=ta.value;
+  // 클릭하면 메모 패널 확대
+  box.onclick=()=>showPanel('memoPanel');
   box.innerHTML=`<b>${d}</b>`;
   box.appendChild(ta);
   cal.appendChild(box);
