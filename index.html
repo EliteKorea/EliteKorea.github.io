@@ -2,238 +2,185 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>공부 플래너</title>
-
+<title>공부 RPG 플래너</title>
 <style>
-*{box-sizing:border-box;}
-body{
-  margin:0;
-  height:100vh;
-  overflow:hidden; /* 스크롤 완전 차단 */
-  background:#cfe2ff;
-  font-family:굴림;
-}
-.page{
-  width:100%;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-.hidden{display:none;}
-
-.box{
-  background:#fff;
-  border:4px solid #6b8cff;
-  padding:20px;
-  width:420px;
-}
-
-button,input{
-  padding:6px;
-  margin:4px;
-}
-
-h2{text-align:center}
-
-/* 공부 일정 */
-.study-box{
-  width:760px;
-}
-.study-wrap{
-  display:flex;
-  gap:20px;
-}
-
-/* 타이머 */
-.timer{
-  width:220px;
-  text-align:center;
-}
-svg{
-  transform:rotate(-90deg);
-}
-.time-text{
-  position:absolute;
-  width:140px;
-  text-align:center;
-  font-size:14px;
-  margin-top:-90px;
-}
-
+body{margin:0;font-family:Arial;background:#f5f5f5}
+.hidden{display:none}
+.center{display:flex;justify-content:center;align-items:center;height:100vh}
+.box{background:#fff;border-radius:12px;padding:20px;width:320px;box-shadow:0 4px 10px rgba(0,0,0,0.1)}
+button{padding:6px 10px;margin:4px;cursor:pointer}
+/* 메인 레이아웃 */
+#mainLayout{display:grid;grid-template-columns:180px 1fr;height:100vh}
+#left{background:#222;color:#fff;padding:10px}
+#right{padding:10px;overflow:auto}
 /* 달력 */
-.calendar{
-  flex:1;
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:4px;
-}
-.cell{
-  height:90px;
-  border:2px solid #8aa4ff;
-}
-.today{border:3px solid hotpink;}
-textarea{
-  width:100%;
-  height:100%;
-  border:none;
-  resize:none;
-}
+#calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.day{border:1px solid #aaa;min-height:60px;padding:4px;font-size:12px}
+.today{border:2px solid red}
+/* 타이머 */
+#timer{width:140px;height:140px;border-radius:50%;border:6px solid #333;display:flex;align-items:center;justify-content:center;margin:10px 0}
 </style>
 </head>
-
 <body>
 
 <!-- 로그인 -->
-<div id="loginPage" class="page">
+<div id="loginPage" class="center">
   <div class="box">
-    <h2>로그인 / 회원가입</h2>
-    <input id="lid" placeholder="아이디">
-    <input id="lpw" type="password" placeholder="비밀번호">
-    <button onclick="doLogin()">로그인</button>
-    <hr>
-    <input id="sid" placeholder="아이디">
-    <input id="spw" type="password" placeholder="비밀번호">
-    <button onclick="signup()">회원가입</button>
+    <h2>로그인</h2>
+    <input id="user" placeholder="닉네임"><br><br>
+    <button onclick="login()">입장</button>
   </div>
 </div>
 
 <!-- 메인 -->
-<div id="mainPage" class="page hidden">
-  <div class="box">
-    <h2 id="welcome"></h2>
-    <p id="quote"></p>
-    <button onclick="openStudy()">📅 공부 일정</button>
-    <button onclick="logout()">로그아웃</button>
-  </div>
-</div>
+<div id="mainPage" class="hidden">
+  <div id="mainLayout">
+    <div id="left">
+      <h3>📌 메뉴</h3>
+      <button onclick="showPage('home')">메인</button><br>
+      <button onclick="showPage('study')">공부 일정</button><br><br>
+      <div>
+        ⭐ Lv <span id="level">1</span><br>
+        🏷 <span id="title"></span><br>
+        💎 P <span id="point">0</span>
+      </div>
+    </div>
+    <div id="right">
 
-<!-- 공부 일정 -->
-<div id="studyPage" class="page hidden">
-  <div class="box study-box">
-    <button onclick="backMain()">⬅ 메인</button>
-    <h2 id="title"></h2>
-
-    <div class="study-wrap">
-      <!-- 타이머 -->
-      <div class="timer">
-        <input id="h" type="number" value="1" style="width:40px">시
-        <input id="m" type="number" value="0" style="width:40px">분
-        <input id="s" type="number" value="0" style="width:40px">초
-        <br>
-        <button onclick="start()">시작</button>
-        <button onclick="stop()">정지</button>
-
-        <div style="position:relative;margin-top:10px">
-          <svg width="140" height="140">
-            <circle cx="70" cy="70" r="60" stroke="#ddd" stroke-width="10" fill="none"/>
-            <circle id="circle"
-              cx="70" cy="70" r="60"
-              stroke="#6b8cff"
-              stroke-width="10"
-              fill="none"
-              stroke-dasharray="377"
-              stroke-dashoffset="0"/>
-          </svg>
-          <div class="time-text" id="time">00:00:00</div>
-        </div>
+      <!-- 홈 -->
+      <div id="home">
+        <h2>오늘의 명언</h2>
+        <p id="quote"></p>
+        <button onclick="checkIn()">📅 출석 체크</button>
+        <h3>출석 달력</h3>
+        <div id="stampCalendar"></div>
       </div>
 
-      <!-- 달력 -->
-      <div class="calendar" id="cal"></div>
+      <!-- 공부 일정 -->
+      <div id="study" class="hidden">
+        <h2 id="dateTitle"></h2>
+        <div style="display:flex;gap:20px">
+          <div>
+            <div id="timer">00:00</div>
+            <input id="h" type="number" placeholder="시" min="0">
+            <input id="m" type="number" placeholder="분" min="0">
+            <input id="s" type="number" placeholder="초" min="0">
+            <br>
+            <button onclick="startTimer()">시작</button>
+          </div>
+          <div style="flex:1">
+            <div id="calendar"></div>
+          </div>
+        </div>
+        <h3>타이머 스킨</h3>
+        <button onclick="buySkin('default',0)">기본</button>
+        <button onclick="buySkin('red',10)">레드</button>
+        <button onclick="buySkin('pixel',20)">픽셀</button>
+      </div>
+
     </div>
   </div>
 </div>
 
 <script>
+/* 로그인 */
+function login(){
+  const u=document.getElementById('user').value;
+  if(!u) return alert('닉네임 입력');
+  localStorage.setItem('user',u);
+  loginPage.classList.add('hidden');
+  mainPage.classList.remove('hidden');
+}
+
+/* 페이지 */
+function showPage(p){
+  home.classList.add('hidden');
+  study.classList.add('hidden');
+  document.getElementById(p).classList.remove('hidden');
+}
+
+/* 포인트 & 레벨 */
+function calcLevel(p){return p>=100?5:p>=50?4:p>=25?3:p>=10?2:1}
+function titleByLv(lv){return ['🌱 초보','🔥 집중러','⚡ 꾸준러','🧠 마스터','👑 전설'][lv-1]}
+function updateStatus(){
+  const p=Number(localStorage.getItem('point')||0);
+  point.innerText=p;
+  const lv=calcLevel(p);
+  level.innerText=lv;
+  title.innerText=titleByLv(lv);
+}
+
+/* 출석 */
+function checkIn(){
+  const d=new Date().toISOString().slice(0,10);
+  let data=JSON.parse(localStorage.getItem('att')||'{}');
+  if(data[d]) return alert('이미 출석');
+  let streak=Number(localStorage.getItem('streak')||0)+1;
+  let p=Number(localStorage.getItem('point')||0);
+  if(streak===7){p+=10;streak=0;} else p+=1;
+  data[d]='✔';
+  localStorage.setItem('att',JSON.stringify(data));
+  localStorage.setItem('streak',streak);
+  localStorage.setItem('point',p);
+  drawStamp();updateStatus();
+}
+function drawStamp(){
+  let data=JSON.parse(localStorage.getItem('att')||'{}');
+  let html='';
+  for(let i=1;i<=31;i++) html+=`<span style="margin:2px">${Object.values(data)[i-1]||'□'}</span>`;
+  stampCalendar.innerHTML=html;
+}
+
 /* 명언 */
-const quotes=["오늘의 노력이 내일을 만든다","조금씩 해도 멈추지 말자"];
+const quotes=['오늘의 노력이 내일을 만든다','꾸준함이 재능이다','포기하지 말자'];
 quote.innerText=quotes[Math.floor(Math.random()*quotes.length)];
 
-/* 회원 */
-function signup(){
-  let users=JSON.parse(localStorage.getItem("users"))||{};
-  if(users[sid.value]) return alert("이미 있음");
-  users[sid.value]=spw.value;
-  localStorage.setItem("users",JSON.stringify(users));
-  alert("회원가입 완료");
-}
-function doLogin(){
-  let users=JSON.parse(localStorage.getItem("users"))||{};
-  if(users[lid.value]===lpw.value){
-    localStorage.setItem("user",lid.value);
-    showMain();
-  }else alert("로그인 실패");
-}
-function logout(){
-  localStorage.removeItem("user");
-  location.reload();
-}
-
-/* 화면 전환 */
-function showMain(){
-  loginPage.classList.add("hidden");
-  mainPage.classList.remove("hidden");
-  welcome.innerText=localStorage.getItem("user")+"님 환영!";
-}
-function openStudy(){
-  mainPage.classList.add("hidden");
-  studyPage.classList.remove("hidden");
-  drawCalendar();
-}
-function backMain(){
-  studyPage.classList.add("hidden");
-  mainPage.classList.remove("hidden");
-}
-if(localStorage.getItem("user")) showMain();
-
-/* 타이머 + 게이지 */
-let timer=null,total=0,remain=0;
-const circle=document.getElementById("circle");
-const length=377;
-
-function start(){
-  stop();
-  total=remain=Number(h.value)*3600+Number(m.value)*60+Number(s.value);
-  timer=setInterval(()=>{
-    remain--;
-    update();
-    if(remain<=0) stop();
-  },1000);
-}
-function stop(){clearInterval(timer);}
-function update(){
-  let p=remain/total;
-  circle.style.strokeDashoffset=length*(1-p);
-  time.innerText=
-    String(Math.floor(remain/3600)).padStart(2,"0")+":"+
-    String(Math.floor(remain%3600/60)).padStart(2,"0")+":"+
-    String(remain%60).padStart(2,"0");
-}
-
-/* 달력 */
-let memos=JSON.parse(localStorage.getItem("memos"))||{};
+/* 달력 메모 */
 function drawCalendar(){
-  cal.innerHTML="";
+  calendar.innerHTML='';
   const now=new Date();
-  const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
-  title.innerText=`${y}년 ${m+1}월 ${d}일`;
-  const first=new Date(y,m,1).getDay();
-  const last=new Date(y,m+1,0).getDate();
-
-  for(let i=0;i<first;i++) cal.appendChild(document.createElement("div"));
-  for(let i=1;i<=last;i++){
-    const key=`${localStorage.getItem("user")}_${y}-${m+1}-${i}`;
-    const c=document.createElement("div");
-    c.className="cell"+(i===d?" today":"");
-    const t=document.createElement("textarea");
-    t.value=memos[key]||"";
-    t.oninput=()=>{memos[key]=t.value;localStorage.setItem("memos",JSON.stringify(memos));};
-    c.appendChild(t);
-    cal.appendChild(c);
+  dateTitle.innerText=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일`;
+  for(let i=1;i<=31;i++){
+    const d=document.createElement('div');
+    d.className='day';
+    if(i===now.getDate()) d.classList.add('today');
+    const key=`memo-${now.getMonth()}-${i}`;
+    d.contentEditable=true;
+    d.innerText=localStorage.getItem(key)||i;
+    d.onblur=()=>localStorage.setItem(key,d.innerText);
+    calendar.appendChild(d);
   }
 }
-</script>
 
+/* 타이머 */
+let timerInt;
+function startTimer(){
+  let t=(+h.value||0)*3600+(+m.value||0)*60+(+s.value||0);
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    if(t<=0){clearInterval(timerInt);return;}
+    t--;
+    timer.innerText=Math.floor(t/60)+":"+(t%60).toString().padStart(2,'0');
+  },1000);
+}
+
+/* 타이머 스킨 */
+function buySkin(s,p){
+  let pt=Number(localStorage.getItem('point')||0);
+  if(pt<p) return alert('포인트 부족');
+  localStorage.setItem('point',pt-p);
+  localStorage.setItem('skin',s);
+  applySkin();updateStatus();
+}
+function applySkin(){
+  const s=localStorage.getItem('skin');
+  if(s==='red') timer.style.borderColor='red';
+  else if(s==='pixel'){timer.style.borderColor='#0f0';timer.style.background='#000';timer.style.color='#0f0';}
+}
+
+/* 초기 */
+if(localStorage.getItem('user')){loginPage.classList.add('hidden');mainPage.classList.remove('hidden');}
+drawCalendar();drawStamp();updateStatus();applySkin();
+</script>
 </body>
 </html>
