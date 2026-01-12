@@ -1,165 +1,223 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>공부 플래너 (정상 작동 버전)</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>공부 일정 사이트</title>
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;height:100%;overflow:hidden;font-family:Arial}
-.hidden{display:none}
-.center{display:flex;justify-content:center;align-items:center;height:100%}
-.box{background:#fff;padding:20px;border-radius:12px;width:320px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
-button{padding:8px 12px;margin:4px;cursor:pointer}
-input{width:100%;padding:8px;margin:6px 0}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+}
+.hidden { display: none; }
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.box {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  text-align: center;
+}
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: none;
+}
+button { cursor: pointer; background:#38bdf8; font-weight:bold; }
 
-#layout{display:grid;grid-template-columns:180px 1fr;height:100%}
-#menu{background:#222;color:#fff;padding:10px}
-#content{padding:12px;height:100%;overflow:hidden}
-.page{height:100%;overflow:hidden}
+/* layout */
+#app { height:100vh; display:flex; }
+#sidebar {
+  width: 220px;
+  background:#020617;
+  padding: 12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+#content {
+  flex:1;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.card {
+  background:#1e293b;
+  border-radius:12px;
+  padding:12px;
+}
 
-#calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;height:100%}
-.day{border:1px solid #aaa;min-height:80px;padding:4px;font-size:12px}
-.today{border:2px solid red}
+/* calendar */
+#calendar {
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap:6px;
+}
+.day {
+  background:#334155;
+  min-height:80px;
+  padding:4px;
+  font-size:12px;
+}
+.today { outline:2px solid #38bdf8; }
+textarea {
+  width:100%;
+  height:60px;
+  background:#020617;
+  color:white;
+  border:none;
+}
 
-#timer{width:140px;height:140px;border-radius:50%;border:6px solid #333;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:10px}
+/* timer */
+#timerCircle {
+  width:120px; height:120px;
+  border-radius:50%;
+  border:8px solid #38bdf8;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:18px;
+}
+.pixel body { image-rendering: pixelated; }
 </style>
 </head>
 <body>
 
-<!-- 로그인 / 회원가입 -->
-<div id="auth" class="center">
+<!-- LOGIN -->
+<div id="loginPage" class="center">
   <div class="box">
-    <h2>로그인 / 회원가입</h2>
-    <input id="id" placeholder="아이디">
-    <input id="pw" type="password" placeholder="비밀번호">
-    <button onclick="signup()">회원가입</button>
+    <h2>로그인</h2>
+    <input id="loginId" placeholder="아이디" />
+    <input id="loginPw" type="password" placeholder="비밀번호" />
     <button onclick="login()">로그인</button>
+    <button onclick="showSignup()">회원가입</button>
   </div>
 </div>
 
-<!-- 메인 -->
-<div id="app" class="hidden" style="height:100%">
-  <div id="layout">
-    <div id="menu">
-      <h3>📌 메뉴</h3>
-      <button onclick="show('home')">메인</button><br>
-      <button onclick="show('study')">공부 일정</button><br><br>
-      ⭐ Lv <span id="lv">1</span><br>
-      🏷 <span id="title"></span><br>
-      💎 <span id="point">0</span>P
+<!-- SIGNUP -->
+<div id="signupPage" class="center hidden">
+  <div class="box">
+    <h2>회원가입</h2>
+    <input id="signupId" placeholder="아이디" />
+    <input id="signupPw" type="password" placeholder="비밀번호" />
+    <button onclick="signup()">가입</button>
+    <button onclick="backLogin()">뒤로</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <div id="sidebar">
+    <button onclick="showMain()">메인</button>
+    <button onclick="showStudy()">공부 일정</button>
+    <button onclick="togglePixel()">픽셀 모드</button>
+    <div class="card">💖 후원</div>
+    <div class="card">📢 광고</div>
+    <button onclick="logout()">로그아웃</button>
+  </div>
+
+  <div id="content">
+    <!-- MAIN -->
+    <div id="mainPage" class="card">
+      <h3>오늘의 명언</h3>
+      <p id="quote"></p>
+      <p>출석: <span id="days"></span>일</p>
+      <p>포인트: <span id="points"></span></p>
     </div>
-    <div id="content">
 
-      <!-- 메인 -->
-      <div id="home" class="page">
-        <h2>오늘의 명언</h2>
-        <p id="quote"></p>
-        <button onclick="checkIn()">📅 출석 체크</button>
+    <!-- STUDY -->
+    <div id="studyPage" class="hidden" style="display:flex; gap:10px; flex:1;">
+      <div class="card" style="width:200px;">
+        <h4>타이머</h4>
+        <input id="hh" placeholder="시" />
+        <input id="mm" placeholder="분" />
+        <input id="ss" placeholder="초" />
+        <button onclick="startTimer()">시작</button>
+        <div id="timerCircle">00:00</div>
       </div>
-
-      <!-- 공부 일정 -->
-      <div id="study" class="page hidden">
-        <h2 id="date"></h2>
-        <div style="display:flex;height:100%">
-          <div style="width:220px">
-            <div id="timer">00:00</div>
-            <input id="h" type="number" placeholder="시">
-            <input id="m" type="number" placeholder="분">
-            <input id="s" type="number" placeholder="초">
-            <button onclick="startTimer()">시작</button>
-          </div>
-          <div style="flex:1;padding-left:10px">
-            <div id="calendar"></div>
-          </div>
-        </div>
+      <div class="card" style="flex:1;">
+        <h4 id="ym"></h4>
+        <div id="calendar"></div>
       </div>
-
     </div>
   </div>
 </div>
 
 <script>
-/* ===== 회원 ===== */
+/* AUTH */
+function showSignup(){loginPage.classList.add('hidden');signupPage.classList.remove('hidden');}
+function backLogin(){signupPage.classList.add('hidden');loginPage.classList.remove('hidden');}
 function signup(){
-  if(!id.value||!pw.value) return alert('입력해');
-  if(localStorage.getItem('user:'+id.value)) return alert('이미 있음');
-  localStorage.setItem('user:'+id.value,pw.value);
-  alert('회원가입 완료');
-}
-
+  const i=signupId.value,p=signupPw.value;
+  if(!i||!p)return alert('입력해');
+  if(localStorage.getItem('u-'+i))return alert('이미 있음');
+  localStorage.setItem('u-'+i,p);alert('완료');backLogin();}
 function login(){
-  const saved=localStorage.getItem('user:'+id.value);
-  if(!saved) return alert('아이디 없음');
-  if(saved!==pw.value) return alert('비번 틀림');
-  localStorage.setItem('login',id.value);
-  auth.classList.add('hidden');
-  app.classList.remove('hidden');
+  const i=loginId.value,p=loginPw.value;
+  if(localStorage.getItem('u-'+i)!==p)return alert('실패');
+  localStorage.setItem('login',i);startApp();}
+function logout(){localStorage.removeItem('login');location.reload();}
+
+/* APP */
+function startApp(){loginPage.classList.add('hidden');signupPage.classList.add('hidden');app.classList.remove('hidden');loadMain();}
+if(localStorage.getItem('login'))startApp();
+
+/* MAIN */
+const quotes=['포기하지 마','오늘도 성장','꾸준함이 답'];
+function loadMain(){
+  quote.innerText=quotes[new Date().getDate()%quotes.length];
+  let d=+localStorage.getItem('days')||0;
+  let last=localStorage.getItem('last');
+  const today=new Date().toDateString();
+  if(last!==today){d++;localStorage.setItem('days',d);localStorage.setItem('last',today);
+    let p=+localStorage.getItem('points')||0;p+=d%7===0?10:1;localStorage.setItem('points',p);}  
+  days.innerText=d;points.innerText=localStorage.getItem('points')||0;
 }
 
-if(localStorage.getItem('login')){
-  auth.classList.add('hidden');
-  app.classList.remove('hidden');
-}
+/* STUDY */
+function showMain(){mainPage.classList.remove('hidden');studyPage.classList.add('hidden');}
+function showStudy(){mainPage.classList.add('hidden');studyPage.classList.remove('hidden');buildCal();}
 
-/* ===== 페이지 ===== */
-function show(p){home.classList.add('hidden');study.classList.add('hidden');document.getElementById(p).classList.remove('hidden')}
-
-/* ===== 포인트 / 레벨 ===== */
-function level(p){return p>=100?5:p>=50?4:p>=25?3:p>=10?2:1}
-function titleOf(l){return ['🌱 초보','🔥 집중러','⚡ 꾸준러','🧠 마스터','👑 전설'][l-1]}
-function updateStatus(){
-  const p=Number(localStorage.getItem('point')||0);
-  point.innerText=p;
-  const l=level(p);
-  lv.innerText=l;
-  title.innerText=titleOf(l);
-}
-
-/* ===== 출석 ===== */
-function checkIn(){
-  const d=new Date().toDateString();
-  if(localStorage.getItem('check')===d) return alert('이미 출석');
-  let p=Number(localStorage.getItem('point')||0)+1;
-  localStorage.setItem('check',d);
-  localStorage.setItem('point',p);
-  updateStatus();
-}
-
-/* ===== 명언 ===== */
-const quotes=['오늘의 노력이 내일을 만든다','꾸준함이 재능이다','포기하지 마'];
-quote.innerText=quotes[Math.floor(Math.random()*quotes.length)];
-
-/* ===== 달력 메모 ===== */
-function drawCalendar(){
+function buildCal(){
   calendar.innerHTML='';
   const now=new Date();
-  date.innerText=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일`;
-  for(let i=1;i<=31;i++){
-    const d=document.createElement('div');
-    d.className='day';
-    if(i===now.getDate()) d.classList.add('today');
-    const key='memo-'+now.getMonth()+'-'+i;
-    d.contentEditable=true;
-    d.innerText=localStorage.getItem(key)||i;
-    d.onblur=()=>localStorage.setItem(key,d.innerText);
-    calendar.appendChild(d);
+  ym.innerText=`${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
+  const total=30;
+  for(let i=1;i<=total;i++){
+    const d=document.createElement('div');d.className='day';
+    if(i===now.getDate())d.classList.add('today');
+    const ta=document.createElement('textarea');
+    ta.value=localStorage.getItem('memo-'+i)||'';
+    ta.oninput=()=>localStorage.setItem('memo-'+i,ta.value);
+    d.innerText=i;d.appendChild(ta);calendar.appendChild(d);
   }
 }
 
-/* ===== 타이머 ===== */
-let it;
+/* TIMER */
+let t;
 function startTimer(){
-  let t=(+h.value||0)*3600+(+m.value||0)*60+(+s.value||0);
-  clearInterval(it);
-  it=setInterval(()=>{
-    if(t<=0){clearInterval(it);return;}
-    t--;
-    timer.innerText=Math.floor(t/60)+":"+(t%60).toString().padStart(2,'0');
+  let s=(+hh.value||0)*3600+(+mm.value||0)*60+(+ss.value||0);
+  clearInterval(t);
+  t=setInterval(()=>{
+    if(s<=0){clearInterval(t);return;}
+    s--;timerCircle.innerText=Math.floor(s/60)+":"+(s%60).toString().padStart(2,'0');
   },1000);
 }
 
-/* 초기 */
-drawCalendar();updateStatus();
+function togglePixel(){document.body.classList.toggle('pixel');}
 </script>
 </body>
 </html>
