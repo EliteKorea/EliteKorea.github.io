@@ -19,7 +19,7 @@ body{
 
 /* 공통 */
 .box{
-  width:700px;   /* ⭐ 옆으로 넓게 */
+  width:700px;
   background:#1e293b;
   padding:20px;
   border-radius:14px;
@@ -29,7 +29,7 @@ body{
 
 input,button,textarea{
   width:100%;
-  margin-top:10px;
+  margin-top:8px;
   padding:8px;
   border:none;
   border-radius:6px;
@@ -46,25 +46,47 @@ button{
   cursor:pointer;
 }
 
+/* 레이아웃 */
+.study-layout{
+  display:grid;
+  grid-template-columns:240px 1fr;
+  gap:12px;
+}
+
+/* 타이머 */
+.timer{
+  background:#0f172a;
+  padding:10px;
+  border-radius:10px;
+}
+.timer h3{text-align:center}
+.timer input{margin-top:4px}
+
+/* 명언 */
+.quote{
+  background:#0f172a;
+  padding:12px;
+  border-radius:10px;
+  font-size:14px;
+}
+
 /* 달력 */
 .calendar{
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:8px;
+  gap:10px;
   margin-top:12px;
 }
 .day{
-  background:#0f172a;
-  height:120px;           /* ⭐ 칸 크게 */
+  background:#020617;
+  height:120px;
   padding:6px;
   font-size:13px;
   border-radius:8px;
 }
-.today{
-  border:2px solid #38bdf8;
-}
+.today{border:2px solid #38bdf8}
 .day textarea{
-  height:85px;            /* ⭐ 메모 크게 */
+  height:85px;
   font-size:13px;
   background:transparent;
   color:white;
@@ -73,8 +95,7 @@ button{
 .header{
   text-align:center;
   font-weight:bold;
-  font-size:16px;
-  margin-bottom:6px;
+  font-size:18px;
 }
 </style>
 </head>
@@ -102,6 +123,7 @@ button{
 <!-- 메인 -->
 <div class="box" id="mainBox">
   <h2 id="welcome"></h2>
+  <div class="quote" id="quote"></div>
   <button onclick="show('studyBox')">📅 공부 일정</button>
   <button onclick="logout()">로그아웃</button>
 </div>
@@ -109,12 +131,33 @@ button{
 <!-- 공부 일정 -->
 <div class="box" id="studyBox">
   <div class="header" id="monthTitle"></div>
-  <div class="calendar" id="calendar"></div>
+
+  <div class="study-layout">
+
+    <!-- 타이머 -->
+    <div class="timer">
+      <h3>⏱ 타이머</h3>
+      <input id="h" placeholder="시" type="number" min="0">
+      <input id="m" placeholder="분" type="number" min="0">
+      <input id="s" placeholder="초" type="number" min="0">
+      <button onclick="startTimer()">시작</button>
+      <button onclick="stopTimer()">정지</button>
+      <button onclick="resetTimer()">초기화</button>
+      <div id="timeView" style="text-align:center;margin-top:6px"></div>
+    </div>
+
+    <!-- 달력 -->
+    <div>
+      <div class="calendar" id="calendar"></div>
+    </div>
+
+  </div>
+
   <button onclick="show('mainBox')">← 메인으로</button>
 </div>
 
 <script>
-/* 화면 전환 */
+/* 화면 */
 function show(id){
   document.querySelectorAll('.box').forEach(b=>b.classList.remove('show'));
   document.getElementById(id).classList.add('show');
@@ -142,6 +185,39 @@ function enterMain(){
   show('mainBox');
 }
 if(localStorage.getItem('loginUser')) enterMain();
+
+/* 명언 */
+const quotes=[
+  '오늘의 노력이 내일을 만든다',
+  '지금 하는 게 제일 빠르다',
+  '포기하지 마라',
+  '작은 습관이 큰 차이를 만든다'
+];
+quote.innerText = quotes[Math.floor(Math.random()*quotes.length)];
+
+/* 타이머 */
+let timer=null,sec=0;
+function startTimer(){
+  sec = (+h.value||0)*3600 + (+m.value||0)*60 + (+s.value||0);
+  if(sec<=0) return;
+  stopTimer();
+  timer=setInterval(()=>{
+    if(sec<=0){stopTimer();return;}
+    sec--;
+    renderTime();
+  },1000);
+}
+function stopTimer(){clearInterval(timer);}
+function resetTimer(){
+  stopTimer();
+  timeView.innerText='';
+}
+function renderTime(){
+  const hh=Math.floor(sec/3600);
+  const mm=Math.floor((sec%3600)/60);
+  const ss=sec%60;
+  timeView.innerText=`${hh} : ${mm} : ${ss}`;
+}
 
 /* 달력 */
 const cal=document.getElementById('calendar');
