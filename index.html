@@ -5,54 +5,65 @@
 <title>공부 플래너</title>
 
 <style>
+*{box-sizing:border-box;}
 body{
   margin:0;
+  height:100vh;
+  overflow:hidden; /* 스크롤 완전 차단 */
   background:#cfe2ff;
   font-family:굴림;
 }
-.hidden{display:none;}
-.center{
-  min-height:100vh;
+.page{
+  width:100%;
+  height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
 }
+.hidden{display:none;}
+
 .box{
-  width:420px;
   background:#fff;
   border:4px solid #6b8cff;
   padding:20px;
+  width:420px;
 }
+
 button,input{
   padding:6px;
   margin:4px;
 }
+
 h2{text-align:center}
 
-.menu button{
-  width:100%;
-  margin-top:8px;
+/* 공부 일정 */
+.study-box{
+  width:760px;
 }
-
 .study-wrap{
   display:flex;
-  gap:10px;
+  gap:20px;
 }
+
+/* 타이머 */
 .timer{
-  width:160px;
+  width:220px;
   text-align:center;
 }
-.circle{
-  width:140px;
-  height:140px;
-  border-radius:50%;
-  border:8px solid #6b8cff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:auto;
+svg{
+  transform:rotate(-90deg);
 }
+.time-text{
+  position:absolute;
+  width:140px;
+  text-align:center;
+  font-size:14px;
+  margin-top:-90px;
+}
+
+/* 달력 */
 .calendar{
+  flex:1;
   display:grid;
   grid-template-columns:repeat(7,1fr);
   gap:4px;
@@ -74,16 +85,13 @@ textarea{
 <body>
 
 <!-- 로그인 -->
-<div id="loginPage" class="center">
+<div id="loginPage" class="page">
   <div class="box">
     <h2>로그인 / 회원가입</h2>
-
     <input id="lid" placeholder="아이디">
     <input id="lpw" type="password" placeholder="비밀번호">
     <button onclick="doLogin()">로그인</button>
-
     <hr>
-
     <input id="sid" placeholder="아이디">
     <input id="spw" type="password" placeholder="비밀번호">
     <button onclick="signup()">회원가입</button>
@@ -91,24 +99,23 @@ textarea{
 </div>
 
 <!-- 메인 -->
-<div id="mainPage" class="center hidden">
+<div id="mainPage" class="page hidden">
   <div class="box">
     <h2 id="welcome"></h2>
     <p id="quote"></p>
-    <div class="menu">
-      <button onclick="openStudy()">📅 공부 일정</button>
-      <button onclick="logout()">로그아웃</button>
-    </div>
+    <button onclick="openStudy()">📅 공부 일정</button>
+    <button onclick="logout()">로그아웃</button>
   </div>
 </div>
 
 <!-- 공부 일정 -->
-<div id="studyPage" class="center hidden">
-  <div class="box" style="width:720px">
+<div id="studyPage" class="page hidden">
+  <div class="box study-box">
     <button onclick="backMain()">⬅ 메인</button>
     <h2 id="title"></h2>
 
     <div class="study-wrap">
+      <!-- 타이머 -->
       <div class="timer">
         <input id="h" type="number" value="1" style="width:40px">시
         <input id="m" type="number" value="0" style="width:40px">분
@@ -116,58 +123,58 @@ textarea{
         <br>
         <button onclick="start()">시작</button>
         <button onclick="stop()">정지</button>
-        <div class="circle" id="time">00:00:00</div>
+
+        <div style="position:relative;margin-top:10px">
+          <svg width="140" height="140">
+            <circle cx="70" cy="70" r="60" stroke="#ddd" stroke-width="10" fill="none"/>
+            <circle id="circle"
+              cx="70" cy="70" r="60"
+              stroke="#6b8cff"
+              stroke-width="10"
+              fill="none"
+              stroke-dasharray="377"
+              stroke-dashoffset="0"/>
+          </svg>
+          <div class="time-text" id="time">00:00:00</div>
+        </div>
       </div>
 
-      <div style="flex:1">
-        <div class="calendar" id="cal"></div>
-      </div>
+      <!-- 달력 -->
+      <div class="calendar" id="cal"></div>
     </div>
   </div>
 </div>
 
 <script>
 /* 명언 */
-const quotes=[
-  "오늘의 노력이 내일을 만든다",
-  "조금씩 해도 멈추지 말자",
-  "공부는 배신하지 않는다"
-];
+const quotes=["오늘의 노력이 내일을 만든다","조금씩 해도 멈추지 말자"];
 quote.innerText=quotes[Math.floor(Math.random()*quotes.length)];
 
-/* 회원가입 */
+/* 회원 */
 function signup(){
-  const id=sid.value, pw=spw.value;
-  if(!id||!pw){alert("입력해");return;}
   let users=JSON.parse(localStorage.getItem("users"))||{};
-  if(users[id]){alert("이미 있음");return;}
-  users[id]=pw;
+  if(users[sid.value]) return alert("이미 있음");
+  users[sid.value]=spw.value;
   localStorage.setItem("users",JSON.stringify(users));
   alert("회원가입 완료");
 }
-
-/* 로그인 (버그 없음) */
 function doLogin(){
-  const id=lid.value, pw=lpw.value;
   let users=JSON.parse(localStorage.getItem("users"))||{};
-  if(users[id]===pw){
-    localStorage.setItem("loginUser",id);
+  if(users[lid.value]===lpw.value){
+    localStorage.setItem("user",lid.value);
     showMain();
-  }else{
-    alert("아이디 또는 비밀번호 틀림");
-  }
+  }else alert("로그인 실패");
 }
-
 function logout(){
-  localStorage.removeItem("loginUser");
+  localStorage.removeItem("user");
   location.reload();
 }
 
-/* 화면 이동 */
+/* 화면 전환 */
 function showMain(){
   loginPage.classList.add("hidden");
   mainPage.classList.remove("hidden");
-  welcome.innerText=localStorage.getItem("loginUser")+"님 환영!";
+  welcome.innerText=localStorage.getItem("user")+"님 환영!";
 }
 function openStudy(){
   mainPage.classList.add("hidden");
@@ -178,51 +185,52 @@ function backMain(){
   studyPage.classList.add("hidden");
   mainPage.classList.remove("hidden");
 }
+if(localStorage.getItem("user")) showMain();
 
-/* 자동 로그인 */
-if(localStorage.getItem("loginUser")){
-  showMain();
-}
+/* 타이머 + 게이지 */
+let timer=null,total=0,remain=0;
+const circle=document.getElementById("circle");
+const length=377;
 
-/* 타이머 */
-let timer=null, remain=0;
 function start(){
   stop();
-  remain=Number(h.value)*3600+Number(m.value)*60+Number(s.value);
+  total=remain=Number(h.value)*3600+Number(m.value)*60+Number(s.value);
   timer=setInterval(()=>{
-    if(remain<=0){stop();return;}
     remain--;
-    time.innerText=
-      String(Math.floor(remain/3600)).padStart(2,"0")+":"+
-      String(Math.floor(remain%3600/60)).padStart(2,"0")+":"+
-      String(remain%60).padStart(2,"0");
+    update();
+    if(remain<=0) stop();
   },1000);
 }
 function stop(){clearInterval(timer);}
+function update(){
+  let p=remain/total;
+  circle.style.strokeDashoffset=length*(1-p);
+  time.innerText=
+    String(Math.floor(remain/3600)).padStart(2,"0")+":"+
+    String(Math.floor(remain%3600/60)).padStart(2,"0")+":"+
+    String(remain%60).padStart(2,"0");
+}
 
 /* 달력 */
 let memos=JSON.parse(localStorage.getItem("memos"))||{};
 function drawCalendar(){
   cal.innerHTML="";
   const now=new Date();
-  const y=now.getFullYear(), m=now.getMonth(), d=now.getDate();
+  const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
   title.innerText=`${y}년 ${m+1}월 ${d}일`;
   const first=new Date(y,m,1).getDay();
   const last=new Date(y,m+1,0).getDate();
 
   for(let i=0;i<first;i++) cal.appendChild(document.createElement("div"));
   for(let i=1;i<=last;i++){
-    const key=`${localStorage.getItem("loginUser")}_${y}-${m+1}-${i}`;
-    const cell=document.createElement("div");
-    cell.className="cell"+(i===d?" today":"");
-    const ta=document.createElement("textarea");
-    ta.value=memos[key]||"";
-    ta.oninput=()=>{
-      memos[key]=ta.value;
-      localStorage.setItem("memos",JSON.stringify(memos));
-    };
-    cell.appendChild(ta);
-    cal.appendChild(cell);
+    const key=`${localStorage.getItem("user")}_${y}-${m+1}-${i}`;
+    const c=document.createElement("div");
+    c.className="cell"+(i===d?" today":"");
+    const t=document.createElement("textarea");
+    t.value=memos[key]||"";
+    t.oninput=()=>{memos[key]=t.value;localStorage.setItem("memos",JSON.stringify(memos));};
+    c.appendChild(t);
+    cal.appendChild(c);
   }
 }
 </script>
