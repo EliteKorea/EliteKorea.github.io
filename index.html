@@ -17,7 +17,27 @@ body.dark .left{background:#333;}
 .left.closed .menu-btn{display:none;}
 .right{flex:1;padding:15px;display:flex;flex-direction:column;}
 canvas{position:fixed;top:0;left:0;z-index:-1;}
-.panel{margin-top:10px;}
+
+/* 패널 기본 축소 */
+.panel{
+  overflow:hidden;
+  height:50px;
+  padding:5px;
+  margin-bottom:5px;
+  border-radius:6px;
+  background:#f5f5f5;
+  transition: all 0.3s ease;
+}
+body.dark .panel{background:#444;color:white;}
+
+/* 선택된 패널 */
+.panel.active{
+  height:auto;
+  padding:10px;
+  background:#fff;
+}
+body.dark .panel.active{background:#555;}
+
 /* 타이머 */
 .timer-container{position:relative;width:200px;height:200px;margin:auto;}
 .timer-container svg{width:200px;height:200px;}
@@ -25,6 +45,7 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
 .timer-container .bg{stroke:#ddd;}
 .timer-container .progress{stroke:#4caf50;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;stroke-dasharray:565;stroke-dashoffset:0;}
 .timer-container #time{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:bold;text-align:center;}
+
 /* 달력 */
 .calendar{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px;}
 .day{background:#fff;padding:5px;border-radius:6px;font-size:12px;}
@@ -93,12 +114,16 @@ function toggleMenu(){
   document.getElementById("leftMenu").classList.toggle("closed",!menuOpen);
 }
 
-/* ===== 패널 전환 ===== */
+/* ===== 패널 전환 & 축소/확대 ===== */
 function showPanel(id){
-  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
-  document.getElementById(id).style.display='block';
+  document.querySelectorAll('.panel').forEach(p=>{
+    if(p.id===id){
+      p.classList.add('active');
+    } else {
+      p.classList.remove('active');
+    }
+  });
 }
-/* 초기 화면 */
 showPanel('timerPanel');
 
 /* ===== 다크 모드 ===== */
