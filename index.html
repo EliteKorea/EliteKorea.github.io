@@ -28,6 +28,7 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
   background:#f5f5f5;
   transition: all 0.3s ease;
 }
+.panel.expanded{width:500px;height:400px;} /* 메모 확대 */
 body.dark .panel{background:#444;color:white;}
 
 /* 타이머 */
@@ -110,21 +111,32 @@ function toggleMenu(){
   document.getElementById("leftMenu").classList.toggle("closed",!menuOpen);
 }
 
-/* ===== 패널 토글 기능 ===== */
+/* ===== 패널 토글 + 메모 확대 ===== */
 function togglePanel(id, btn){
   const panel=document.getElementById(id);
   if(panel.style.display==='block'){ // 이미 열려있으면 닫기
     panel.style.display='none';
+    panel.classList.remove('expanded'); // 확대 해제
   } else { // 닫혀있으면 열기
     // 다른 패널 모두 닫기
     document.querySelectorAll('.panel').forEach(p=>{
       p.style.display='none';
+      p.classList.remove('expanded');
     });
-    // 선택된 패널 버튼 바로 아래에 배치 후 표시
+    // 선택된 패널 버튼 아래 배치 후 표시
     btn.insertAdjacentElement('afterend', panel);
     panel.style.display='block';
+    if(id==='memoPanel') panel.classList.add('expanded'); // 메모 패널 확대
   }
 }
+
+/* 달력 클릭 시 메모 패널 토글 + 확대 */
+document.querySelectorAll('.day').forEach(day=>{
+  day.onclick=()=>{
+    const memoBtn=document.querySelector('.menu-btn:nth-child(3)');
+    togglePanel('memoPanel', memoBtn);
+  }
+});
 
 /* ===== 다크 모드 ===== */
 function mode(){document.body.classList.toggle("dark");}
@@ -160,7 +172,7 @@ for(let d=1;d<=30;d++){
   const ta=document.createElement("textarea");
   ta.value=localStorage["d"+d]||"";
   ta.oninput=()=>localStorage["d"+d]=ta.value;
-  // 클릭하면 메모 패널 토글
+  // 클릭하면 메모 패널 토글 + 확대
   box.onclick=()=>{
     const memoBtn=document.querySelector('.menu-btn:nth-child(3)');
     togglePanel('memoPanel', memoBtn);
