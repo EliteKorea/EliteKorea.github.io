@@ -14,29 +14,21 @@ body.dark .left{background:#333;}
 .menu-btn{display:flex;align-items:center;width:100%;padding:10px;margin-bottom:8px;background:#eee;border:none;cursor:pointer;justify-content:center;}
 .menu-btn:hover{background:#ddd;}
 .left.closed{width:60px;}
-.left.closed .menu-btn span{text-align:center;font-size:24px;display:block;}
-.left.closed .panel{display:none;}
+.left.closed .menu-btn span:nth-child(2){display:none;}
 .right{flex:1;padding:15px;display:flex;flex-direction:column;}
 canvas{position:fixed;top:0;left:0;z-index:-1;}
 
-/* 패널 기본 축소 */
+/* 패널 */
 .panel{
+  display:none;
   overflow:hidden;
-  height:50px;
-  padding:5px;
+  padding:10px;
   margin-bottom:5px;
   border-radius:6px;
   background:#f5f5f5;
   transition: all 0.3s ease;
 }
 body.dark .panel{background:#444;color:white;}
-/* 선택된 패널 */
-.panel.active{
-  height:auto;
-  padding:10px;
-  background:#fff;
-}
-body.dark .panel.active{background:#555;}
 
 /* 타이머 */
 .timer-container{position:relative;width:200px;height:200px;margin:auto;}
@@ -47,7 +39,7 @@ body.dark .panel.active{background:#555;}
 .timer-container #time{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:bold;text-align:center;}
 
 /* 달력 */
-.calendar{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px;}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px;}
 .day{background:#fff;padding:5px;border-radius:6px;font-size:12px;cursor:pointer;}
 body.dark .day{background:#444;}
 .day textarea{width:100%;height:70px;resize:none;}
@@ -65,12 +57,12 @@ button{cursor:pointer;}
   <div class="left" id="leftMenu">
     <div class="menu-header" onclick="toggleMenu()">☰ 메뉴</div>
     
-    <!-- 아이콘 메뉴 -->
-    <button class="menu-btn" onclick="showPanel('timerPanel')"><span>⏱</span> <span style="display:none;">타이머</span></button>
-    <button class="menu-btn" onclick="showPanel('checkPanel')"><span>📌</span> <span style="display:none;">출석</span></button>
-    <button class="menu-btn" onclick="showPanel('memoPanel')"><span>📝</span> <span style="display:none;">메모</span></button>
+    <!-- 메뉴 버튼 -->
+    <button class="menu-btn" onclick="showPanel('timerPanel', this)"><span>⏱</span> <span>타이머</span></button>
+    <button class="menu-btn" onclick="showPanel('checkPanel', this)"><span>📌</span> <span>출석</span></button>
+    <button class="menu-btn" onclick="showPanel('memoPanel', this)"><span>📝</span> <span>메모</span></button>
 
-    <!-- 타이머 -->
+    <!-- 타이머 패널 -->
     <div class="panel" id="timerPanel">
       <div class="timer-container">
         <svg>
@@ -87,13 +79,13 @@ button{cursor:pointer;}
       <button onclick="reset()">초기화</button>
     </div>
 
-    <!-- 출석 -->
+    <!-- 출석 패널 -->
     <div class="panel" id="checkPanel">
       <button onclick="check()">📅 출석체크</button>
       <div id="point">포인트: 0</div>
     </div>
 
-    <!-- 메모 -->
+    <!-- 메모 패널 -->
     <div class="panel" id="memoPanel">
       <p>아래 달력에 메모를 작성할 수 있습니다.</p>
     </div>
@@ -116,23 +108,19 @@ let menuOpen=true;
 function toggleMenu(){
   menuOpen=!menuOpen;
   document.getElementById("leftMenu").classList.toggle("closed",!menuOpen);
-  // 아이콘만 표시
-  document.querySelectorAll('.menu-btn span:nth-child(2)').forEach(span=>{
-    span.style.display = menuOpen ? 'inline' : 'none';
-  });
 }
 
-/* ===== 패널 전환 & 축소/확대 ===== */
-function showPanel(id){
+/* ===== 패널 전환 & 위치 변경 ===== */
+function showPanel(id, btn){
+  // 모든 패널 숨김
   document.querySelectorAll('.panel').forEach(p=>{
-    if(p.id===id){
-      p.classList.add('active');
-    } else {
-      p.classList.remove('active');
-    }
+    p.style.display='none';
   });
+  // 선택된 패널을 버튼 바로 아래에 배치 후 표시
+  const panel=document.getElementById(id);
+  btn.insertAdjacentElement('afterend', panel);
+  panel.style.display='block';
 }
-showPanel('timerPanel');
 
 /* ===== 다크 모드 ===== */
 function mode(){document.body.classList.toggle("dark");}
@@ -168,8 +156,8 @@ for(let d=1;d<=30;d++){
   const ta=document.createElement("textarea");
   ta.value=localStorage["d"+d]||"";
   ta.oninput=()=>localStorage["d"+d]=ta.value;
-  // 클릭하면 메모 패널 확대
-  box.onclick=()=>showPanel('memoPanel');
+  // 클릭하면 메모 패널 표시
+  box.onclick=()=>showPanel('memoPanel', document.querySelector('.menu-btn:nth-child(3)'));
   box.innerHTML=`<b>${d}</b>`;
   box.appendChild(ta);
   cal.appendChild(box);
