@@ -2,147 +2,194 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>공부 타이머</title>
+<title>공부 일정</title>
 
 <style>
+*{box-sizing:border-box;}
 body{
   margin:0;
   height:100vh;
   display:flex;
-  justify-content:center;
-  align-items:center;
-  background:#f5f5f5;
+  background:#f2f2f2;
   font-family:Arial;
+  overflow:hidden;
+}
+body.dark{background:#222;color:white;}
+
+.left{
+  width:260px;
+  padding:15px;
+  background:#fff;
+}
+body.dark .left{background:#333;}
+
+.right{
+  flex:1;
+  padding:15px;
+  display:flex;
+  flex-direction:column;
 }
 
-.timer-box{
-  background:white;
-  padding:30px;
-  border-radius:12px;
+/* 눈 배경 */
+canvas{
+  position:fixed;
+  top:0;left:0;
+  z-index:-1;
+}
+
+/* 타이머 */
+.timer{
   text-align:center;
-  width:300px;
 }
-
-/* 원형 게이지 */
-svg{
-  width:200px;
-  height:200px;
-}
-circle{
-  fill:none;
-  stroke-width:10;
-}
-.bg{
-  stroke:#eee;
-}
+svg{width:180px;height:180px;}
+circle{fill:none;stroke-width:10;}
+.bg{stroke:#ddd;}
 .progress{
-  stroke:#4CAF50;
+  stroke:#4caf50;
   stroke-linecap:round;
   transform:rotate(-90deg);
   transform-origin:50% 50%;
   stroke-dasharray:565;
-  stroke-dashoffset:0;
 }
 
-/* 시간 */
-.time{
-  font-size:32px;
-  margin:10px 0;
+/* 달력 */
+.calendar{
+  flex:1;
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px;
+  margin-top:10px;
 }
-
-/* 입력 */
-.inputs input{
-  width:60px;
+.day{
+  background:#fff;
   padding:5px;
-  font-size:16px;
-  margin:5px;
-  text-align:center;
+  border-radius:6px;
+  font-size:12px;
+}
+body.dark .day{background:#444;}
+.day textarea{
+  width:100%;
+  height:70px;
+  resize:none;
 }
 
-/* 버튼 */
-button{
-  margin:5px;
-  padding:8px 15px;
-  font-size:14px;
-  cursor:pointer;
+/* 상단 */
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
+button{cursor:pointer;}
 </style>
 </head>
 
 <body>
 
-<div class="timer-box">
-  <h2>⏱ 공부 타이머</h2>
+<canvas id="snow"></canvas>
 
-  <svg>
-    <circle class="bg" cx="100" cy="100" r="90"></circle>
-    <circle class="progress" cx="100" cy="100" r="90" id="circle"></circle>
-  </svg>
-
-  <div class="time" id="display">00:00:00</div>
-
-  <div class="inputs">
-    <input id="h" type="number" min="0" placeholder="시">
-    <input id="m" type="number" min="0" max="59" placeholder="분">
-    <input id="s" type="number" min="0" max="59" placeholder="초">
+<div class="left">
+  <div class="timer">
+    <h3>⏱ 타이머</h3>
+    <svg>
+      <circle class="bg" cx="90" cy="90" r="80"/>
+      <circle class="progress" cx="90" cy="90" r="80" id="circle"/>
+    </svg>
+    <div id="time">00:00:00</div>
+    <input id="h" placeholder="시" size="2">
+    <input id="m" placeholder="분" size="2">
+    <input id="s" placeholder="초" size="2"><br>
+    <button onclick="start()">시작</button>
+    <button onclick="pause()">정지</button>
+    <button onclick="reset()">초기화</button>
   </div>
 
-  <button onclick="start()">시작</button>
-  <button onclick="pause()">일시정지</button>
-  <button onclick="reset()">초기화</button>
+  <hr>
+  <button onclick="check()">📅 출석체크</button>
+  <div id="point">포인트: 0</div>
+</div>
+
+<div class="right">
+  <div class="top">
+    <h2 id="title"></h2>
+    <button onclick="mode()">🌙/☀️</button>
+  </div>
+
+  <div class="calendar" id="cal"></div>
 </div>
 
 <script>
-let total=0;
-let remain=0;
-let timer=null;
-const circle=document.getElementById("circle");
-const max=565;
-
-function update(){
-  let h=Math.floor(remain/3600);
-  let m=Math.floor((remain%3600)/60);
-  let s=remain%60;
-  display.innerText=
+/* ===== 타이머 ===== */
+let t=0,r=0,i=null;
+const c=document.getElementById("circle"),max=565;
+function draw(){
+  let h=Math.floor(r/3600),
+      m=Math.floor((r%3600)/60),
+      s=r%60;
+  time.innerText=
     `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  
-  circle.style.strokeDashoffset =
-    max - (remain/total)*max;
+  c.style.strokeDashoffset=max-(r/t)*max;
 }
-
 function start(){
-  if(timer) return;
-
-  if(remain===0){
-    const h=+document.getElementById("h").value||0;
-    const m=+document.getElementById("m").value||0;
-    const s=+document.getElementById("s").value||0;
-    total=remain=h*3600+m*60+s;
-    if(total<=0) return;
+  if(i) return;
+  if(!r){
+    t=r=(+h.value||0)*3600+(+m.value||0)*60+(+s.value||0);
+    if(!r) return;
   }
+  i=setInterval(()=>{r--;draw();if(r<=0)clearInterval(i)},1000);
+}
+function pause(){clearInterval(i);i=null;}
+function reset(){pause();r=0;time.innerText="00:00:00";c.style.strokeDashoffset=0;}
 
-  timer=setInterval(()=>{
-    if(remain<=0){
-      clearInterval(timer);
-      timer=null;
-      return;
-    }
-    remain--;
-    update();
-  },1000);
+/* ===== 달력 ===== */
+const now=new Date();
+title.innerText=`${now.getFullYear()}년 ${now.getMonth()+1}월`;
+const cal=document.getElementById("cal");
+for(let d=1;d<=30;d++){
+  const box=document.createElement("div");
+  box.className="day";
+  const ta=document.createElement("textarea");
+  ta.value=localStorage["d"+d]||"";
+  ta.oninput=()=>localStorage["d"+d]=ta.value;
+  box.innerHTML=`<b>${d}</b>`;
+  box.appendChild(ta);
+  cal.appendChild(box);
 }
 
-function pause(){
-  clearInterval(timer);
-  timer=null;
+/* ===== 출석 ===== */
+let p=+localStorage.point||0;
+point.innerText="포인트: "+p;
+function check(){
+  const today=new Date().toDateString();
+  if(localStorage.last!==today){
+    p+= (localStorage.streak==6)?10:1;
+    localStorage.streak=(+localStorage.streak||0)+1;
+    localStorage.last=today;
+    localStorage.point=p;
+    point.innerText="포인트: "+p;
+  }
 }
 
-function reset(){
-  pause();
-  remain=0;
-  circle.style.strokeDashoffset=0;
-  display.innerText="00:00:00";
+/* ===== 모드 ===== */
+function mode(){
+  document.body.classList.toggle("dark");
 }
+
+/* ===== 눈 ===== */
+const cv=snow,ctx=cv.getContext("2d");
+cv.width=innerWidth;cv.height=innerHeight;
+let fl=[];
+for(let i=0;i<100;i++)
+  fl.push({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*3+1});
+setInterval(()=>{
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle="white";
+  fl.forEach(f=>{
+    ctx.beginPath();
+    ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
+    ctx.fill();
+    f.y+=1;if(f.y>cv.height)f.y=0;
+  });
+},30);
 </script>
 
 </body>
