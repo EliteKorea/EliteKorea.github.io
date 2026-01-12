@@ -5,208 +5,138 @@
 <title>미니홈피</title>
 
 <style>
-body {
-  margin:0; padding:0;
-  font-family: 굴림, monospace;
+body{
+  margin:0;
+  font-family:굴림, monospace;
   background:#cde7ff;
 }
+.hidden{display:none;}
+button{cursor:pointer;}
 
-.hidden { display:none; }
-
-button {
-  border:2px solid #555;
-  background:#eee;
-  cursor:pointer;
-}
-
-input {
-  margin:4px 0;
-}
-
-/* 홈 */
-#home {
+.page{
+  padding:40px;
   text-align:center;
-  padding-top:100px;
 }
 
-/* 프레임 */
-#app {
-  padding:10px;
-}
-
-.frame {
+.frame{
+  width:90%;
+  margin:auto;
+  background:#fff;
   border:4px solid #6b8cff;
-  background:#fff;
+  padding:20px;
+}
+
+/* 메인 */
+.menu button{
+  display:block;
+  margin:15px auto;
   padding:10px;
-}
-
-/* 레이아웃 */
-.container {
-  display:grid;
-  grid-template-columns:260px 1fr;
-  gap:10px;
-}
-
-/* 박스 */
-.box {
-  border:2px dashed #8aa4ff;
-  padding:6px;
-  background:#fff;
-  margin-bottom:8px;
+  width:200px;
 }
 
 /* 달력 */
-.calendar {
+.calendar{
   display:grid;
   grid-template-columns:repeat(7,1fr);
   gap:4px;
 }
-
-.day {
+.day{
   background:#dbe4ff;
-  text-align:center;
   border:1px solid #8aa4ff;
 }
-
-.cell {
+.cell{
   height:120px;
   border:2px solid #8aa4ff;
   background:#fffef5;
 }
-
-.today {
+.today{
   border:3px solid hotpink;
 }
-
-textarea {
+textarea{
   width:100%;
   height:90px;
   border:none;
   resize:none;
-  font-family:굴림;
   background:transparent;
+  font-family:굴림;
 }
-
-/* 스킨 */
-.skin-pink { background:#ffe6f0; }
-.skin-blue { background:#e6f0ff; }
-.skin-dot  { background:#f5f5f5; }
-
 </style>
 </head>
 
 <body>
 
-<!-- 홈 -->
-<div id="home">
-  <h1>🏠 미니홈피</h1>
-  <p>방문자 수: <span id="visit"></span></p>
-
-  <h3>로그인</h3>
-  <input id="lid" placeholder="아이디"><br>
-  <input id="lpw" type="password" placeholder="비밀번호"><br>
-  <button onclick="login()">로그인</button>
-
-  <h3>회원가입</h3>
-  <input id="sid" placeholder="아이디"><br>
-  <input id="spw" type="password" placeholder="비밀번호"><br>
-  <button onclick="signup()">회원가입</button>
+<!-- A. 로그인 -->
+<div id="login" class="page">
+  <div class="frame">
+    <h1>🔐 로그인</h1>
+    <input id="id" placeholder="아이디"><br><br>
+    <input id="pw" type="password" placeholder="비밀번호"><br><br>
+    <button onclick="login()">로그인</button>
+  </div>
 </div>
 
-<!-- 앱 -->
-<div id="app" class="hidden">
+<!-- B. 메인 페이지 -->
+<div id="main" class="page hidden">
   <div class="frame">
-    <button onclick="logout()">로그아웃</button>
+    <h1>🏠 메인 페이지</h1>
+    <p>로블록스 메인처럼 생각하면 됨</p>
 
-    <div class="container">
-
-      <!-- 왼쪽 -->
-      <div>
-        <div class="box">
-          <h3>🎵 BGM</h3>
-          <button onclick="toggleBgm()">ON / OFF</button>
-        </div>
-
-        <div class="box">
-          <h3>🎨 스킨</h3>
-          <button onclick="setSkin('pink')">핑크</button>
-          <button onclick="setSkin('blue')">블루</button>
-          <button onclick="setSkin('dot')">도트</button>
-        </div>
-
-        <div class="box">
-          <h3>💬 한마디</h3>
-          <p>오늘도 놀러와줘서 고마워 ♡</p>
-        </div>
-
-        <div class="box"><h3>💖 후원</h3></div>
-        <div class="box"><h3>📢 광고</h3></div>
-      </div>
-
-      <!-- 오른쪽 -->
-      <div>
-        <h2 id="title"></h2>
-        <div class="calendar" id="cal">
-          <div class="day">일</div><div class="day">월</div><div class="day">화</div>
-          <div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div>
-        </div>
-      </div>
-
+    <div class="menu">
+      <button onclick="go('memo')">📅 메모 페이지</button>
+      <button onclick="logout()">🚪 로그아웃</button>
     </div>
   </div>
 </div>
 
-<audio id="bgm" loop>
-  <source src="https://upload.wikimedia.org/wikipedia/commons/4/45/Popcorn.ogg">
-</audio>
+<!-- C. 메모 페이지 -->
+<div id="memo" class="page hidden">
+  <div class="frame">
+    <button onclick="go('main')">⬅ 메인으로</button>
+    <h2 id="title"></h2>
+
+    <div class="calendar" id="cal">
+      <div class="day">일</div><div class="day">월</div><div class="day">화</div>
+      <div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div>
+    </div>
+  </div>
+</div>
 
 <script>
-/* 방문자 */
-let v=Number(localStorage.getItem("visit")||0)+1;
-localStorage.setItem("visit",v);
-visit.innerText=v;
-
-/* 로그인 */
-let users=JSON.parse(localStorage.getItem("users"))||{};
-function signup(){
-  users[sid.value]=spw.value;
-  localStorage.setItem("users",JSON.stringify(users));
-  alert("가입 완료");
+/* ===== 페이지 관리 ===== */
+function go(page){
+  localStorage.setItem("page",page);
+  show(page);
 }
+
+function show(page){
+  login.classList.add("hidden");
+  main.classList.add("hidden");
+  memo.classList.add("hidden");
+  document.getElementById(page).classList.remove("hidden");
+}
+
+/* ===== 로그인 ===== */
 function login(){
-  if(users[lid.value]===lpw.value){
-    localStorage.setItem("login",lid.value);
-    start();
-  } else alert("실패");
+  localStorage.setItem("login","ok");
+  go("main");
 }
 function logout(){
-  localStorage.removeItem("login");
+  localStorage.clear();
   location.reload();
 }
 
-/* 시작 */
-function start(){
-  home.classList.add("hidden");
-  app.classList.remove("hidden");
-  draw();
-}
-if(localStorage.getItem("login")) start();
-
-/* BGM */
-function toggleBgm(){
-  bgm.paused?bgm.play():bgm.pause();
+/* ===== 새로고침 복구 ===== */
+if(localStorage.getItem("login")){
+  show(localStorage.getItem("page")||"main");
+}else{
+  show("login");
 }
 
-/* 스킨 */
-function setSkin(s){
-  document.body.className="skin-"+s;
-}
-
-/* 달력 */
+/* ===== 달력 ===== */
 const cal=document.getElementById("cal");
-const memo=JSON.parse(localStorage.getItem("memo"))||{};
+const data=JSON.parse(localStorage.getItem("memoData"))||{};
 const now=new Date();
-const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+const y=now.getFullYear(), m=now.getMonth(), d=now.getDate();
 title.innerText=`📅 ${y}년 ${m+1}월 ${d}일`;
 
 function draw(){
@@ -221,12 +151,16 @@ function draw(){
     let c=document.createElement("div");
     c.className="cell"+(i===d?" today":"");
     let t=document.createElement("textarea");
-    t.value=memo[key]||"";
-    t.oninput=()=>{memo[key]=t.value;localStorage.setItem("memo",JSON.stringify(memo));}
+    t.value=data[key]||"";
+    t.oninput=()=>{
+      data[key]=t.value;
+      localStorage.setItem("memoData",JSON.stringify(data));
+    };
     c.appendChild(t);
     cal.appendChild(c);
   }
 }
+draw();
 </script>
 
 </body>
