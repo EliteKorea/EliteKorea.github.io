@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>픽셀 캘린더</title>
+<title>미니홈피 캘린더</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -10,10 +10,18 @@
 body {
   margin: 0;
   padding: 10px;
-  font-family: monospace;
-  background: #bdbdbd;
+  font-family: "굴림", monospace;
+  background: #cde7ff;
 }
 
+/* 싸이월드 프레임 */
+.frame {
+  background: #fdfdfd;
+  border: 4px solid #6b8cff;
+  padding: 10px;
+}
+
+/* 레이아웃 */
 .container {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -29,15 +37,27 @@ body {
 
 .box {
   background: #fff;
-  border: 3px solid black;
+  border: 2px dashed #8aa4ff;
   padding: 8px;
 }
 
 /* 오른쪽 */
 .calendar-box {
-  height: calc(100vh - 20px);
+  height: calc(100vh - 40px);
   display: flex;
   flex-direction: column;
+  background: #f5f8ff;
+  border: 3px solid #8aa4ff;
+  padding: 8px;
+}
+
+/* 제목 */
+#title {
+  text-align: center;
+  background: #e6ecff;
+  border: 2px solid #8aa4ff;
+  padding: 6px;
+  margin-bottom: 6px;
 }
 
 /* 달력 */
@@ -51,13 +71,13 @@ body {
 .day {
   text-align: center;
   font-weight: bold;
-  background: #d0d0d0;
-  border: 2px solid black;
+  background: #dbe4ff;
+  border: 2px solid #8aa4ff;
 }
 
 .cell {
-  border: 2px solid black;
-  background: #f5f5f5;
+  border: 2px solid #8aa4ff;
+  background: #fffef5;
   height: 120px;
   padding: 4px;
   overflow-y: auto;
@@ -66,94 +86,109 @@ body {
 
 /* 오늘 날짜 */
 .today {
-  border: 4px solid red;
-  background: #fff0f0;
+  background: #fff0f5;
+  border: 3px solid hotpink;
 }
 
+/* 메모 */
 textarea {
   width: 100%;
   height: 90px;
   resize: none;
   border: none;
   background: transparent;
-  font-family: monospace;
+  font-family: "굴림", monospace;
   font-size: 12px;
 }
 
-/* 픽셀 끄기 */
-.no-pixel * {
+/* 싸이월드 OFF */
+.no-cyworld {
+  background: #bdbdbd;
+  font-family: monospace;
+}
+
+.no-cyworld .frame,
+.no-cyworld .calendar-box,
+.no-cyworld .box,
+.no-cyworld .day,
+.no-cyworld .cell {
   border-radius: 8px;
-  border-width: 1px !important;
+  border: 1px solid #888;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="frame">
+  <div class="container">
 
-  <!-- 왼쪽 -->
-  <div class="left">
-    <div class="box">
-      <h3>⏱ 타이머</h3>
-      <input id="m" type="number" value="1" style="width:50px"> 분
-      <input id="s" type="number" value="0" style="width:50px"> 초
-      <button onclick="startTimer()">시작</button>
-      <p id="time">대기중</p>
+    <!-- 왼쪽 -->
+    <div class="left">
+      <div class="box">
+        <h3>⏱ 타이머</h3>
+        <input id="m" type="number" value="1" style="width:50px"> 분
+        <input id="s" type="number" value="0" style="width:50px"> 초
+        <button onclick="startTimer()">시작</button>
+        <p id="time">대기중</p>
+      </div>
+
+      <div class="box">
+        <h3>💬 오늘의 한마디</h3>
+        <p id="quote"></p>
+      </div>
+
+      <div class="box">
+        <h3>⚙ 설정</h3>
+        <button onclick="toggleStyle()">싸이월드 ON / OFF</button>
+      </div>
+
+      <div class="box"><h3>💖 후원</h3></div>
+      <div class="box"><h3>📢 광고</h3></div>
     </div>
 
-    <div class="box">
-      <h3>💬 오늘의 명언</h3>
-      <p id="quote"></p>
+    <!-- 오른쪽 -->
+    <div class="calendar-box">
+      <h2 id="title"></h2>
+
+      <div class="calendar" id="calendar">
+        <div class="day">일</div><div class="day">월</div><div class="day">화</div>
+        <div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div>
+      </div>
     </div>
 
-    <div class="box">
-      <h3>⚙ 설정</h3>
-      <button onclick="toggleStyle()">픽셀 모드 ON / OFF</button>
-    </div>
-
-    <div class="box"><h3>💖 후원</h3></div>
-    <div class="box"><h3>📢 광고</h3></div>
   </div>
-
-  <!-- 오른쪽 -->
-  <div class="box calendar-box">
-    <h2 id="title"></h2>
-
-    <div class="calendar" id="calendar">
-      <div class="day">일</div><div class="day">월</div><div class="day">화</div>
-      <div class="day">수</div><div class="day">목</div><div class="day">금</div><div class="day">토</div>
-    </div>
-  </div>
-
 </div>
 
 <script>
 /* 타이머 */
-function startTimer() {
-  let t = Number(m.value)*60 + Number(s.value);
-  const i = setInterval(()=>{
-    if(t<=0){ clearInterval(i); time.innerText="끝!"; return; }
-    t--; time.innerText=Math.floor(t/60)+"분 "+(t%60)+"초";
+function startTimer(){
+  let t=Number(m.value)*60+Number(s.value);
+  const i=setInterval(()=>{
+    if(t<=0){clearInterval(i);time.innerText="끝!";return;}
+    t--;time.innerText=Math.floor(t/60)+"분 "+(t%60)+"초";
   },1000);
 }
 
 /* 명언 */
-quote.innerText=["지금 시작해도 늦지 않다","완벽보다 실행","계속하면 된다"]
-[Math.floor(Math.random()*3)];
+quote.innerText=[
+  "오늘도 미니홈피 출석 완료 ♡",
+  "도망가도 괜찮아, 멈추지만 말자",
+  "그때의 나도 지금의 나도 소중해"
+][Math.floor(Math.random()*3)];
 
-/* 픽셀 토글 */
+/* 싸이월드 토글 */
 function toggleStyle(){
-  document.body.classList.toggle("no-pixel");
+  document.body.classList.toggle("no-cyworld");
 }
 
 /* 달력 */
 const cal=document.getElementById("calendar");
 const data=JSON.parse(localStorage.getItem("memo"))||{};
 const now=new Date();
-const y=now.getFullYear(), mth=now.getMonth(), d0=now.getDate();
+const y=now.getFullYear(),mth=now.getMonth(),today=now.getDate();
 
-title.innerText=`📅 ${y}년 ${mth+1}월 ${d0}일`;
+title.innerText=`📅 ${y}년 ${mth+1}월 ${today}일`;
 
 function draw(){
   cal.querySelectorAll(".cell").forEach(e=>e.remove());
@@ -166,10 +201,10 @@ function draw(){
     const key=`${y}-${String(mth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const cell=document.createElement("div");
     cell.className="cell";
-    if(d===d0) cell.classList.add("today");
+    if(d===today) cell.classList.add("today");
 
     const ta=document.createElement("textarea");
-    ta.placeholder=d;
+    ta.placeholder=`${d}일 메모`;
     ta.value=data[key]||"";
     ta.oninput=()=>{
       data[key]=ta.value;
