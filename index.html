@@ -2,71 +2,64 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>공부 RPG 플래너</title>
+<title>공부 플래너 (정상 작동 버전)</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;height:100%;overflow:hidden;font-family:Arial}
 .hidden{display:none}
 .center{display:flex;justify-content:center;align-items:center;height:100%}
-.box{background:#fff;border-radius:12px;padding:20px;width:320px;box-shadow:0 4px 10px rgba(0,0,0,0.1)}
-button{padding:6px 10px;margin:4px;cursor:pointer}
-input{padding:6px;width:100%;margin:4px 0}
+.box{background:#fff;padding:20px;border-radius:12px;width:320px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+button{padding:8px 12px;margin:4px;cursor:pointer}
+input{width:100%;padding:8px;margin:6px 0}
 
-/* 레이아웃 */
-#mainLayout{display:grid;grid-template-columns:180px 1fr;height:100%}
-#left{background:#222;color:#fff;padding:10px}
-#right{padding:10px;height:100%;overflow:hidden}
+#layout{display:grid;grid-template-columns:180px 1fr;height:100%}
+#menu{background:#222;color:#fff;padding:10px}
+#content{padding:12px;height:100%;overflow:hidden}
 .page{height:100%;overflow:hidden}
 
-/* 달력 */
 #calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;height:100%}
 .day{border:1px solid #aaa;min-height:80px;padding:4px;font-size:12px}
 .today{border:2px solid red}
 
-/* 타이머 */
-#timer{width:140px;height:140px;border-radius:50%;border:6px solid #333;display:flex;align-items:center;justify-content:center;margin:10px 0;font-size:20px}
+#timer{width:140px;height:140px;border-radius:50%;border:6px solid #333;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:10px}
 </style>
 </head>
 <body>
 
 <!-- 로그인 / 회원가입 -->
-<div id="authPage" class="center">
+<div id="auth" class="center">
   <div class="box">
-    <h2 id="authTitle">로그인</h2>
-    <input id="authId" placeholder="아이디">
-    <input id="authPw" type="password" placeholder="비밀번호">
-    <button onclick="login()">로그인</button>
+    <h2>로그인 / 회원가입</h2>
+    <input id="id" placeholder="아이디">
+    <input id="pw" type="password" placeholder="비밀번호">
     <button onclick="signup()">회원가입</button>
+    <button onclick="login()">로그인</button>
   </div>
 </div>
 
 <!-- 메인 -->
-<div id="mainPage" class="hidden" style="height:100%">
-  <div id="mainLayout">
-    <div id="left">
+<div id="app" class="hidden" style="height:100%">
+  <div id="layout">
+    <div id="menu">
       <h3>📌 메뉴</h3>
-      <button onclick="showPage('home')">메인</button><br>
-      <button onclick="showPage('study')">공부 일정</button><br><br>
-      <div>
-        ⭐ Lv <span id="level">1</span><br>
-        🏷 <span id="title"></span><br>
-        💎 <span id="point">0</span>P
-      </div>
+      <button onclick="show('home')">메인</button><br>
+      <button onclick="show('study')">공부 일정</button><br><br>
+      ⭐ Lv <span id="lv">1</span><br>
+      🏷 <span id="title"></span><br>
+      💎 <span id="point">0</span>P
     </div>
-    <div id="right">
+    <div id="content">
 
-      <!-- 홈 -->
+      <!-- 메인 -->
       <div id="home" class="page">
         <h2>오늘의 명언</h2>
         <p id="quote"></p>
         <button onclick="checkIn()">📅 출석 체크</button>
-        <h3>출석 기록</h3>
-        <div id="stampCalendar"></div>
       </div>
 
       <!-- 공부 일정 -->
       <div id="study" class="page hidden">
-        <h2 id="dateTitle"></h2>
+        <h2 id="date"></h2>
         <div style="display:flex;height:100%">
           <div style="width:220px">
             <div id="timer">00:00</div>
@@ -75,14 +68,10 @@ input{padding:6px;width:100%;margin:4px 0}
             <input id="s" type="number" placeholder="초">
             <button onclick="startTimer()">시작</button>
           </div>
-          <div style="flex:1;padding-left:10px;height:100%">
+          <div style="flex:1;padding-left:10px">
             <div id="calendar"></div>
           </div>
         </div>
-        <h3>타이머 스킨</h3>
-        <button onclick="buySkin('default',0)">기본</button>
-        <button onclick="buySkin('red',10)">레드</button>
-        <button onclick="buySkin('pixel',20)">픽셀</button>
       </div>
 
     </div>
@@ -90,86 +79,66 @@ input{padding:6px;width:100%;margin:4px 0}
 </div>
 
 <script>
-/* 회원 시스템 (localStorage) */
+/* ===== 회원 ===== */
 function signup(){
-  const id = authId.value.trim();
-  const pw = authPw.value.trim();
-  if(!id || !pw){ alert('아이디와 비밀번호를 입력해'); return; }
-
-  if(localStorage.getItem('user-'+id)){
-    alert('이미 존재하는 아이디야');
-    return;
-  }
-
-  localStorage.setItem('user-'+id, pw);
-  alert('회원가입 완료! 이제 로그인해');
+  if(!id.value||!pw.value) return alert('입력해');
+  if(localStorage.getItem('user:'+id.value)) return alert('이미 있음');
+  localStorage.setItem('user:'+id.value,pw.value);
+  alert('회원가입 완료');
 }
 
 function login(){
-  const id = authId.value.trim();
-  const pw = authPw.value.trim();
-
-  const savedPw = localStorage.getItem('user-'+id);
-  if(!savedPw){ alert('존재하지 않는 아이디야'); return; }
-  if(savedPw !== pw){ alert('비밀번호가 틀렸어'); return; }
-
-  localStorage.setItem('login', id);
-  authPage.classList.add('hidden');
-  mainPage.classList.remove('hidden');
+  const saved=localStorage.getItem('user:'+id.value);
+  if(!saved) return alert('아이디 없음');
+  if(saved!==pw.value) return alert('비번 틀림');
+  localStorage.setItem('login',id.value);
+  auth.classList.add('hidden');
+  app.classList.remove('hidden');
 }
 
-/* 페이지 전환 */
-function showPage(p){
-  home.classList.add('hidden');
-  study.classList.add('hidden');
-  document.getElementById(p).classList.remove('hidden');
+if(localStorage.getItem('login')){
+  auth.classList.add('hidden');
+  app.classList.remove('hidden');
 }
 
-/* 포인트 / 레벨 */
-function calcLevel(p){return p>=100?5:p>=50?4:p>=25?3:p>=10?2:1}
-function titleByLv(lv){return ['🌱 초보','🔥 집중러','⚡ 꾸준러','🧠 마스터','👑 전설'][lv-1]}
+/* ===== 페이지 ===== */
+function show(p){home.classList.add('hidden');study.classList.add('hidden');document.getElementById(p).classList.remove('hidden')}
+
+/* ===== 포인트 / 레벨 ===== */
+function level(p){return p>=100?5:p>=50?4:p>=25?3:p>=10?2:1}
+function titleOf(l){return ['🌱 초보','🔥 집중러','⚡ 꾸준러','🧠 마스터','👑 전설'][l-1]}
 function updateStatus(){
   const p=Number(localStorage.getItem('point')||0);
   point.innerText=p;
-  const lv=calcLevel(p);
-  level.innerText=lv;
-  title.innerText=titleByLv(lv);
+  const l=level(p);
+  lv.innerText=l;
+  title.innerText=titleOf(l);
 }
 
-/* 출석 */
+/* ===== 출석 ===== */
 function checkIn(){
-  const d=new Date().toISOString().slice(0,10);
-  let data=JSON.parse(localStorage.getItem('att')||'{}');
-  if(data[d]) return alert('이미 출석');
-  let streak=Number(localStorage.getItem('streak')||0)+1;
-  let p=Number(localStorage.getItem('point')||0);
-  if(streak===7){p+=10;streak=0;} else p+=1;
-  data[d]='✔';
-  localStorage.setItem('att',JSON.stringify(data));
-  localStorage.setItem('streak',streak);
+  const d=new Date().toDateString();
+  if(localStorage.getItem('check')===d) return alert('이미 출석');
+  let p=Number(localStorage.getItem('point')||0)+1;
+  localStorage.setItem('check',d);
   localStorage.setItem('point',p);
-  drawStamp();updateStatus();
+  updateStatus();
 }
 
-function drawStamp(){
-  let data=JSON.parse(localStorage.getItem('att')||'{}');
-  stampCalendar.innerHTML=Object.keys(data).map(d=>'✔').join(' ');
-}
-
-/* 명언 */
-const quotes=['오늘의 노력이 내일을 만든다','꾸준함이 재능이다','포기하지 말자'];
+/* ===== 명언 ===== */
+const quotes=['오늘의 노력이 내일을 만든다','꾸준함이 재능이다','포기하지 마'];
 quote.innerText=quotes[Math.floor(Math.random()*quotes.length)];
 
-/* 달력 메모 */
+/* ===== 달력 메모 ===== */
 function drawCalendar(){
   calendar.innerHTML='';
   const now=new Date();
-  dateTitle.innerText=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일`;
+  date.innerText=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일`;
   for(let i=1;i<=31;i++){
     const d=document.createElement('div');
     d.className='day';
     if(i===now.getDate()) d.classList.add('today');
-    const key=`memo-${now.getMonth()}-${i}`;
+    const key='memo-'+now.getMonth()+'-'+i;
     d.contentEditable=true;
     d.innerText=localStorage.getItem(key)||i;
     d.onblur=()=>localStorage.setItem(key,d.innerText);
@@ -177,36 +146,20 @@ function drawCalendar(){
   }
 }
 
-/* 타이머 */
-let timerInt;
+/* ===== 타이머 ===== */
+let it;
 function startTimer(){
   let t=(+h.value||0)*3600+(+m.value||0)*60+(+s.value||0);
-  clearInterval(timerInt);
-  timerInt=setInterval(()=>{
-    if(t<=0){clearInterval(timerInt);return;}
+  clearInterval(it);
+  it=setInterval(()=>{
+    if(t<=0){clearInterval(it);return;}
     t--;
     timer.innerText=Math.floor(t/60)+":"+(t%60).toString().padStart(2,'0');
   },1000);
 }
 
-/* 타이머 스킨 */
-function buySkin(s,p){
-  let pt=Number(localStorage.getItem('point')||0);
-  if(pt<p) return alert('포인트 부족');
-  localStorage.setItem('point',pt-p);
-  localStorage.setItem('skin',s);
-  applySkin();updateStatus();
-}
-function applySkin(){
-  const s=localStorage.getItem('skin');
-  timer.style.background='none';timer.style.color='#000';timer.style.borderColor='#333';
-  if(s==='red') timer.style.borderColor='red';
-  if(s==='pixel'){timer.style.borderColor='#0f0';timer.style.background='#000';timer.style.color='#0f0';}
-}
-
 /* 초기 */
-if(localStorage.getItem('login')){authPage.classList.add('hidden');mainPage.classList.remove('hidden');}
-drawCalendar();drawStamp();updateStatus();applySkin();
+drawCalendar();updateStatus();
 </script>
 </body>
 </html>
